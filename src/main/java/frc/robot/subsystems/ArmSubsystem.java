@@ -26,10 +26,11 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void configMotors(){
-    leftMotor.getConfigurator().apply(ArmConstants.config.withMotorOutput(
+    leftMotor.getConfigurator().apply(ArmConstants.motorConfig.withMotorOutput(
       new MotorOutputConfigs().withInverted(ArmConstants.leftInverted)));
-    rightMotor.getConfigurator().apply(ArmConstants.config.withMotorOutput(
+    rightMotor.getConfigurator().apply(ArmConstants.motorConfig.withMotorOutput(
       new MotorOutputConfigs().withInverted(ArmConstants.rightInverted)));
+    cancoder.getConfigurator().apply(ArmConstants.cancoderConfig);
   }
 
   @Override

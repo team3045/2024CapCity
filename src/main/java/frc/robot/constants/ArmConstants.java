@@ -4,33 +4,36 @@
 
 package frc.robot.constants;
 
-import java.security.CryptoPrimitive;
-
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.DifferentialSensorsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
-import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.hardware.core.CoreCANcoder;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+
+import edu.wpi.first.math.util.Units;
+import frc.robot.commons.GremlinUnits;
 
 /** Add your docs here. */
 public class ArmConstants {
 
-    //Canbus
+    //CANBUS
     public static final int leftMotorID = 1;
     public static final int rightMotorID = 2;
     public static final String canbus = "rio";
     public static final int cancoderID = 3;
 
+    //PHYSICS
+    public static final double armMOI = GremlinUnits.lbIn2TokgM2(3490); //in^2 lb
+    public static final double armCOM = Units.inchesToMeters(15.044); //Close enough to directly below pivot for our purposes
+    public static final double armMass = Units.lbsToKilograms(17.044);
 
     //CONFIGURATION
 
@@ -42,8 +45,8 @@ public class ArmConstants {
     public static final boolean enableSupplyCurrentLimit = true;
 
     //Feedback Configs
-    public static final double rotorToSensorRatio = 1; //gearing from motor to cancoder
-    public static final double sensorToMechanismRatio = 1; //gearing from cancoder to arm pivot
+    public static final double rotorToSensorRatio = (60.0/12.0) * (60.0/18.0); //gearing from motor to cancoder
+    public static final double sensorToMechanismRatio = (48.0 / 16.0); //gearing from cancoder to arm pivot
 
     //Inverts
     public static final InvertedValue leftInverted = InvertedValue.Clockwise_Positive;
@@ -63,6 +66,10 @@ public class ArmConstants {
     public static final double kA = 0; //voltage based on requested acceleration
     public static final double kS = 0; //Voltage to overcome friction
 
+    //Cancoder Settings
+    public static final double angleOffset = 
+        Units.degreesToRotations(18.2) / sensorToMechanismRatio; //rotations, divide b/c arm to cancocer
+    public static final SensorDirectionValue cancoderInvert = SensorDirectionValue.Clockwise_Positive; 
 
     
     //Motor Configs
@@ -93,9 +100,16 @@ public class ArmConstants {
         .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseVelocitySign);
 
     //Apply Motor Invert in Armsubsystem b/c left and right are opposite
-    public static final TalonFXConfiguration config = new TalonFXConfiguration()
+    public static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
         .withCurrentLimits(currentLimits)
         .withFeedback(feedbackConfigs)
         .withMotionMagic(motionMagic)
         .withSlot0(slot0);
+
+    //Cancoder Configs
+    public static final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration()
+        .withMagnetSensor(new MagnetSensorConfigs()
+            .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
+            .withMagnetOffset(angleOffset)
+            .withSensorDirection(cancoderInvert));
 }
