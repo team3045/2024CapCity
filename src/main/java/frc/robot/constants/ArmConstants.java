@@ -24,10 +24,10 @@ import frc.robot.commons.GremlinUtil;
 /** Add your docs here. */
 public class ArmConstants {
     //CANBUS
-    public static final int leftMotorID = 1;
-    public static final int rightMotorID = 2;
+    public static final int leftMotorID = 11;
+    public static final int rightMotorID = 12;
     public static final String canbus = "rio";
-    public static final int cancoderID = 3;
+    public static final int cancoderID = 13;
 
     //PHYSICS
     public static final double armMOI = GremlinUtil.lbIn2TokgM2(3490); //in^2 lb
@@ -35,7 +35,7 @@ public class ArmConstants {
     public static final double armMass = Units.lbsToKilograms(17.044);
    
     //ANGLES
-    public static final double minAngle = 18.2; //degrees
+    public static final double minAngle = 18.26; //degrees
     public static final double maxAngle = 200;
     public static final double intakeAngle = 30;
     public static final double ampAngle = 140;
@@ -47,6 +47,12 @@ public class ArmConstants {
 
     //LOGPATH
     public static final String path = "ArmSubsystem/";
+
+    //MECHANISM
+    public static final double canvasWidth = Units.inchesToMeters(32); //Technically arbitray units but we'll use meters to be conssistent
+    public static final double canvasHeight = Units.inchesToMeters(32);
+    public static final double rootX = canvasWidth / 2;
+    public static final double rootY = Units.inchesToMeters(25.752224);
 
     //CONFIGURATION
 

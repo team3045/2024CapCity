@@ -12,6 +12,8 @@ import static frc.robot.constants.ArmConstants.atTargetDelay;
 import static frc.robot.constants.ArmConstants.canbus;
 import static frc.robot.constants.ArmConstants.cancoderConfig;
 import static frc.robot.constants.ArmConstants.cancoderID;
+import static frc.robot.constants.ArmConstants.canvasHeight;
+import static frc.robot.constants.ArmConstants.canvasWidth;
 import static frc.robot.constants.ArmConstants.intakeAngle;
 import static frc.robot.constants.ArmConstants.leftInverted;
 import static frc.robot.constants.ArmConstants.leftMotorID;
@@ -21,6 +23,8 @@ import static frc.robot.constants.ArmConstants.motorConfig;
 import static frc.robot.constants.ArmConstants.path;
 import static frc.robot.constants.ArmConstants.rightInverted;
 import static frc.robot.constants.ArmConstants.rightMotorID;
+import static frc.robot.constants.ArmConstants.rootX;
+import static frc.robot.constants.ArmConstants.rootY;
 import static frc.robot.constants.ArmConstants.sensorToMechanismRatio;
 import static frc.robot.constants.ArmConstants.totalGearing;
 import static frc.robot.constants.ArmConstants.velocityTolerance;
@@ -36,17 +40,24 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.RobotContainer;
 import frc.robot.commons.GremlinLogger;
 import frc.robot.commons.GremlinUtil;
 
@@ -71,6 +82,16 @@ public class ArmSubsystem extends SubsystemBase {
     true, 
     Units.degreesToRadians(minAngle));
 
+  //Dashboard 
+  private MechanismLigament2d mechanismLigament2d;
+  private MechanismRoot2d mechanismRoot;
+  private Mechanism2d mechanism;
+
+  //Publishing
+  private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
+  private final NetworkTable armTable = inst.getTable("arm");
+  private final StructPublisher<Rotation2d> rotation2dPublisher = armTable.getStructTopic("Arm Rotation2d", Rotation2d.struct).publish();
+
   //TRIGGERS
   // Add a trigger for isReady; debounce it so that it doesn't flicker while we're shooting
   // TODO: Consider caching.
@@ -82,6 +103,13 @@ public class ArmSubsystem extends SubsystemBase {
     rightMotor = new TalonFX(rightMotorID, canbus);
     cancoder = new CANcoder(cancoderID, canbus);
     setpoint = getPositionDegrees();
+
+    //Setup Mechanism
+    mechanism = new Mechanism2d(canvasWidth, canvasHeight);
+    mechanismRoot = mechanism.getRoot("pivot", rootX, rootY);
+    mechanismLigament2d = mechanismRoot.append(
+      new MechanismLigament2d("armLength", armCOM, getPositionDegrees())
+    );
   }
 
   public void configMotors(){
@@ -150,6 +178,23 @@ public class ArmSubsystem extends SubsystemBase {
     return goToAngle(() -> ampAngle);
   }
 
+  public Rotation2d getAngleRotation2d(){
+    return Rotation2d.fromDegrees(getPositionDegrees());
+  }
+
+  public void displayMechanism(){
+    mechanismLigament2d.setAngle(getAngleRotation2d());
+    SmartDashboard.putData(path + "Mechanism", mechanism);
+  }
+
+  public Command increaseAngle(){
+    return goToAngle(() -> getPositionDegrees() + 5);
+  }
+
+  public Command decreaseAngle(){
+    return goToAngle(() -> getPositionDegrees() - 5);
+  }
+
   @Override
   public void initSendable(SendableBuilder builder){
     super.initSendable(builder);
@@ -191,5 +236,8 @@ public class ArmSubsystem extends SubsystemBase {
     RoboRioSim.setVInVoltage(
       BatterySim.calculateDefaultBatteryLoadedVoltage(armSim.getCurrentDrawAmps())
     );
+
+    logPeriodic();
+    displayMechanism();
   }
 }

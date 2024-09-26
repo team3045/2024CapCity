@@ -66,7 +66,8 @@ public class RobotContainer {
     joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    
+    joystick.L1().whileTrue(arm.increaseAngle());
+    joystick.L1().whileTrue(arm.decreaseAngle());
   }
 
   public RobotContainer() {
