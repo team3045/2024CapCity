@@ -4,30 +4,8 @@
 
 package frc.robot.subsystems;
 
-import static frc.robot.constants.ArmConstants.ampAngle;
-import static frc.robot.constants.ArmConstants.angleTolerance;
-import static frc.robot.constants.ArmConstants.armCOM;
-import static frc.robot.constants.ArmConstants.armMOI;
-import static frc.robot.constants.ArmConstants.atTargetDelay;
-import static frc.robot.constants.ArmConstants.canbus;
-import static frc.robot.constants.ArmConstants.cancoderConfig;
-import static frc.robot.constants.ArmConstants.cancoderID;
-import static frc.robot.constants.ArmConstants.canvasHeight;
-import static frc.robot.constants.ArmConstants.canvasWidth;
-import static frc.robot.constants.ArmConstants.intakeAngle;
-import static frc.robot.constants.ArmConstants.leftInverted;
-import static frc.robot.constants.ArmConstants.leftMotorID;
-import static frc.robot.constants.ArmConstants.maxAngle;
-import static frc.robot.constants.ArmConstants.minAngle;
-import static frc.robot.constants.ArmConstants.motorConfig;
-import static frc.robot.constants.ArmConstants.path;
-import static frc.robot.constants.ArmConstants.rightInverted;
-import static frc.robot.constants.ArmConstants.rightMotorID;
-import static frc.robot.constants.ArmConstants.rootX;
-import static frc.robot.constants.ArmConstants.rootY;
-import static frc.robot.constants.ArmConstants.sensorToMechanismRatio;
-import static frc.robot.constants.ArmConstants.totalGearing;
-import static frc.robot.constants.ArmConstants.velocityTolerance;
+import static frc.robot.constants.ArmConstants.*;
+
 
 import java.util.function.DoubleSupplier;
 
