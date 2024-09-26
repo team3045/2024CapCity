@@ -9,6 +9,7 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.generated.TunerConstants;
@@ -66,8 +67,8 @@ public class RobotContainer {
     joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    joystick.L1().whileTrue(arm.increaseAngle());
-    joystick.L1().whileTrue(arm.decreaseAngle());
+    joystick.L1().whileTrue(arm.increaseAngle().alongWith(Commands.print("Increasing Angle")).repeatedly());
+    joystick.R1().whileTrue(arm.decreaseAngle().alongWith(Commands.print("Decreasing Angle")).repeatedly());
   }
 
   public RobotContainer() {

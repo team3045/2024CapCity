@@ -36,8 +36,14 @@
     "Persistent Values": {
       "open": false
     },
+    "Retained Values": {
+      "open": false
+    },
     "transitory": {
-      "arm": {
+      "SmartDashboard": {
+        "ArmSubsystem": {
+          "open": true
+        },
         "open": true
       }
     }
@@ -49,7 +55,8 @@
       },
       "Subscribers": {
         "open": true
-      }
+      },
+      "open": true
     },
     "visible": true
   }

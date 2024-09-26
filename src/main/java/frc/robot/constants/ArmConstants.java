@@ -78,7 +78,7 @@ public class ArmConstants {
 
     //Control Loop Gains
     public static final GravityTypeValue gravity = GravityTypeValue.Arm_Cosine; //scale kG based on the arm angle
-    public static final double kP = 1; 
+    public static final double kP = 10; 
     public static final double kI = 0; 
     public static final double kD = 0; 
     public static final double kG = 0; //voltage required to overcome gravity
