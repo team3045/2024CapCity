@@ -61,6 +61,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                     null,
                     this));
 
+    @SuppressWarnings("unused")
     private final SysIdRoutine SysIdRoutineRotation = new SysIdRoutine(
             new SysIdRoutine.Config(
                     null,
@@ -71,6 +72,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                     (volts) -> setControl(RotationCharacterization.withVolts(volts)),
                     null,
                     this));
+    @SuppressWarnings("unused")
     private final SysIdRoutine SysIdRoutineSteer = new SysIdRoutine(
             new SysIdRoutine.Config(
                     null,
