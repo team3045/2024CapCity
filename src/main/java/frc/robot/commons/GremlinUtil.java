@@ -5,9 +5,9 @@
 package frc.robot.commons;
 
 /** Add your docs here. */
-public class GremlinUnits {
+public class GremlinUtil {
     //private constructor so cant be instantiated
-    private GremlinUnits(){}
+    private GremlinUtil(){}
 
     /*
      * Converts from pound inches squared to kilogram meters squared.
@@ -15,6 +15,17 @@ public class GremlinUnits {
      */
     public static double lbIn2TokgM2(double lbIn2){
         return lbIn2 * 0.000293;
+    }
+
+    /*
+     * Get the position for example of a motor rotor from an arm angle. 
+     * Or do same for velocity
+     * 
+     * @param gearing The gear ratio in the form rotationsPlant / rotationsMotor
+     * @param plantAngle The angle of the plant ie. the arm if controlling an arm system
+     */
+    public static double valueAfterGearing(double plantValue, double gearing){
+        return plantValue / gearing;
     }
 
 }

@@ -19,11 +19,10 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 import edu.wpi.first.math.util.Units;
-import frc.robot.commons.GremlinUnits;
+import frc.robot.commons.GremlinUtil;
 
 /** Add your docs here. */
 public class ArmConstants {
-
     //CANBUS
     public static final int leftMotorID = 1;
     public static final int rightMotorID = 2;
@@ -31,9 +30,23 @@ public class ArmConstants {
     public static final int cancoderID = 3;
 
     //PHYSICS
-    public static final double armMOI = GremlinUnits.lbIn2TokgM2(3490); //in^2 lb
+    public static final double armMOI = GremlinUtil.lbIn2TokgM2(3490); //in^2 lb
     public static final double armCOM = Units.inchesToMeters(15.044); //Close enough to directly below pivot for our purposes
     public static final double armMass = Units.lbsToKilograms(17.044);
+   
+    //ANGLES
+    public static final double minAngle = 18.2; //degrees
+    public static final double maxAngle = 200;
+    public static final double intakeAngle = 30;
+    public static final double ampAngle = 140;
+
+    //TOLERANCES
+    public static final double angleTolerance = 0.5;
+    public static final double velocityTolerance = 1; //deg / s
+    public static final double atTargetDelay = 0.1; //sec
+
+    //LOGPATH
+    public static final String path = "ArmSubsystem/";
 
     //CONFIGURATION
 
@@ -47,6 +60,7 @@ public class ArmConstants {
     //Feedback Configs
     public static final double rotorToSensorRatio = (60.0/12.0) * (60.0/18.0); //gearing from motor to cancoder
     public static final double sensorToMechanismRatio = (48.0 / 16.0); //gearing from cancoder to arm pivot
+    public static final double totalGearing = rotorToSensorRatio * sensorToMechanismRatio;
 
     //Inverts
     public static final InvertedValue leftInverted = InvertedValue.Clockwise_Positive;
