@@ -23,7 +23,10 @@
         "left": 150,
         "right": 2961,
         "top": 79,
-        "width": 16.541748046875
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
       },
       "/SmartDashboard/ArmSubsystem/Mechanism": {
         "window": {
@@ -41,18 +44,12 @@
     },
     "transitory": {
       "SmartDashboard": {
-        "ArmSubsystem": {
-          "open": true
-        },
         "open": true
       }
     }
   },
   "NetworkTables Info": {
     "Server": {
-      "Publishers": {
-        "open": true
-      },
       "Subscribers": {
         "open": true
       },

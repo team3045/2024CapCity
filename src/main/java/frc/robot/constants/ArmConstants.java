@@ -26,7 +26,7 @@ public class ArmConstants {
     //CANBUS
     public static final int leftMotorID = 11;
     public static final int rightMotorID = 12;
-    public static final String canbus = "rio";
+    public static final String canbus = "3045 Canivore";
     public static final int cancoderID = 13;
 
     //PHYSICS

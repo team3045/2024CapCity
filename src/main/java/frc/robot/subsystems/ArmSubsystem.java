@@ -14,6 +14,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.CANcoderSimState;
+import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.MathUtil;
@@ -26,12 +27,14 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -111,12 +114,16 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void logPeriodic(){
-    GremlinLogger.logTalonFX(path + "leftArmMotor", leftMotor);
-    GremlinLogger.logTalonFX(path + "rightArmMotor", rightMotor);
+    // GremlinLogger.logTalonFX(path + "leftArmMotor", leftMotor);
+    // GremlinLogger.logTalonFX(path + "rightArmMotor", rightMotor);
 
-    GremlinLogger.log(path + "Angle (Deg)", getPositionDegrees());
-    GremlinLogger.log(path + "Velocity (Deg/Sec)", getVelocityDegPerSec());
-    GremlinLogger.log(path + "Target Angle (Deg)", setpoint);
+    // GremlinLogger.log(path + "Angle (Deg)", getPositionDegrees());
+    // GremlinLogger.log(path + "Velocity (Deg per Sec)", getVelocityDegPerSec());
+    // GremlinLogger.log(path + "Target Angle (Deg)", setpoint);
+
+    SmartDashboard.putNumber(path + "Angle (Deg)", getPositionDegrees());
+    SmartDashboard.putNumber(path + "Velocity (Deg per S)", getVelocityDegPerSec());
+    SmartDashboard.putNumber(path + "Target Angle (Deg)", setpoint);
   }
 
   public boolean atTargetPosition(){
@@ -136,7 +143,7 @@ public class ArmSubsystem extends SubsystemBase {
     }
 
     MotionMagicVoltage request = new MotionMagicVoltage(targetAngle)
-      .withEnableFOC(true).withSlot(0).withUpdateFreqHz(500);
+      .withEnableFOC(true).withSlot(0).withUpdateFreqHz(50);
 
     leftMotor.setControl(request);
     rightMotor.setControl(request);
@@ -174,15 +181,6 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   @Override
-  public void initSendable(SendableBuilder builder){
-    super.initSendable(builder);
-    builder.addDoubleProperty("Velocity", () -> getVelocityDegPerSec(), null);
-    builder.addDoubleProperty("Position", () -> getPositionDegrees(), null);
-    builder.addBooleanProperty("At Target?", () -> atTargetPosition(), null);
-    builder.addDoubleProperty("Setpoint", () -> setpoint, null);
-  }
-
-  @Override
   public void simulationPeriodic(){
     leftMotorSimState = leftMotor.getSimState();
     rightMotorSimState = rightMotor.getSimState();
@@ -191,6 +189,9 @@ public class ArmSubsystem extends SubsystemBase {
     leftMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
     rightMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
     cancoderSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+
+    leftMotorSimState.Orientation = ChassisReference.Clockwise_Positive;
+    rightMotorSimState.Orientation = ChassisReference.CounterClockwise_Positive;
 
     armSim.setInputVoltage(leftMotorSimState.getMotorVoltage());
     armSim.update(0.02);
