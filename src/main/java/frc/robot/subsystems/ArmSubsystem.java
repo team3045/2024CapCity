@@ -180,15 +180,21 @@ public class ArmSubsystem extends SubsystemBase {
     return goToAngle(() -> getPositionDegrees() - 5);
   }
 
+  public void configSim(){
+    leftMotorSimState = leftMotor.getSimState();
+    rightMotorSimState = rightMotor.getSimState();
+    cancoderSimState = cancoder.getSimState();
+  }
+
   @Override
   public void simulationPeriodic(){
     leftMotorSimState = leftMotor.getSimState();
     rightMotorSimState = rightMotor.getSimState();
     cancoderSimState = cancoder.getSimState();
 
-    leftMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    rightMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    cancoderSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    leftMotorSimState.setSupplyVoltage(12);
+    rightMotorSimState.setSupplyVoltage(12);
+    cancoderSimState.setSupplyVoltage(12);
 
     leftMotorSimState.Orientation = ChassisReference.Clockwise_Positive;
     rightMotorSimState.Orientation = ChassisReference.CounterClockwise_Positive;
