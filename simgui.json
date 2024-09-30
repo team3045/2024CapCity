@@ -1,8 +1,20 @@
 {
   "HALProvider": {
     "Other Devices": {
-      "window": {
-        "visible": false
+      "Talon FX (v6)[11]/Rotor Sensor": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[12]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[12]/Rotor Sensor": {
+        "header": {
+          "open": true
+        }
       }
     }
   },
@@ -27,11 +39,6 @@
         "window": {
           "visible": true
         }
-      },
-      "/SmartDashboard/ArmSubsystem/Mechanism": {
-        "window": {
-          "visible": true
-        }
       }
     }
   },
@@ -44,6 +51,9 @@
     },
     "transitory": {
       "SmartDashboard": {
+        "ArmSubsystem": {
+          "open": true
+        },
         "open": true
       }
     }
@@ -52,8 +62,7 @@
     "Server": {
       "Subscribers": {
         "open": true
-      },
-      "open": true
+      }
     },
     "visible": true
   }

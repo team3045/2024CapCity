@@ -13,6 +13,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.core.CoreCANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -26,7 +27,7 @@ public class ArmConstants {
     //CANBUS
     public static final int leftMotorID = 11;
     public static final int rightMotorID = 12;
-    public static final String canbus = "3045 Canivore";
+    public static final String canbus = "rio";
     public static final int cancoderID = 13;
 
     //PHYSICS
@@ -88,7 +89,7 @@ public class ArmConstants {
 
     //Cancoder Settings
     public static final double angleOffset = 
-        Units.degreesToRotations(18.2) / sensorToMechanismRatio; //rotations, divide b/c arm to cancocer
+        Units.degreesToRotations(minAngle); //rotations, divide b/c arm to cancocer
     public static final SensorDirectionValue cancoderInvert = SensorDirectionValue.Clockwise_Positive; 
 
     
@@ -101,13 +102,14 @@ public class ArmConstants {
         .withSupplyCurrentLimitEnable(enableSupplyCurrentLimit);
     
     public static final FeedbackConfigs feedbackConfigs = new FeedbackConfigs()
-        .withFusedCANcoder(new CoreCANcoder(cancoderID))
-        .withRotorToSensorRatio(rotorToSensorRatio)
-        .withSensorToMechanismRatio(sensorToMechanismRatio);
+        .withFeedbackRemoteSensorID(cancoderID)
+        .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder)
+        .withSensorToMechanismRatio(1.0 / sensorToMechanismRatio).withFeedbackRotorOffset(0)
+        .withRotorToSensorRatio(rotorToSensorRatio);
 
     public static final MotionMagicConfigs motionMagic = new MotionMagicConfigs()
-        .withMotionMagicAcceleration(cancoderID)
-        .withMotionMagicCruiseVelocity(cancoderID);
+        .withMotionMagicAcceleration(targetAcceleration)
+        .withMotionMagicCruiseVelocity(targetVelocity);
 
     public static final Slot0Configs slot0 = new Slot0Configs()
         .withGravityType(gravity)
@@ -130,6 +132,6 @@ public class ArmConstants {
     public static final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration()
         .withMagnetSensor(new MagnetSensorConfigs()
             .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
-            .withMagnetOffset(angleOffset)
+            .withMagnetOffset(-0.25) //TODO: CHANGE AFTER SIMULATION
             .withSensorDirection(cancoderInvert));
 }

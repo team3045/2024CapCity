@@ -6,13 +6,14 @@ package frc.robot.subsystems;
 
 import static frc.robot.constants.ArmConstants.*;
 
-
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.MagnetHealthValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -25,27 +26,22 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.simulation.BatterySim;
-import edu.wpi.first.wpilibj.simulation.RoboRioSim;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commons.GremlinLogger;
-import frc.robot.commons.GremlinUtil;
 
 public class ArmSubsystem extends SubsystemBase {
-  private final TalonFX leftMotor;
-  private final TalonFX rightMotor;
-  private final CANcoder cancoder;
+  private TalonFX leftMotor = new TalonFX(leftMotorID, canbus);
+  private TalonFX rightMotor = new TalonFX(rightMotorID, canbus);
+  private CANcoder cancoder = new CANcoder(cancoderID, canbus);
   private double setpoint = minAngle;
 
   //SIMULATION
@@ -53,7 +49,7 @@ public class ArmSubsystem extends SubsystemBase {
   private TalonFXSimState rightMotorSimState;
   private CANcoderSimState cancoderSimState;
 
-  private SingleJointedArmSim armSim = new SingleJointedArmSim(
+  private static SingleJointedArmSim armSim = new SingleJointedArmSim(
     DCMotor.getKrakenX60(2), 
     totalGearing, 
     armMOI, 
@@ -80,9 +76,7 @@ public class ArmSubsystem extends SubsystemBase {
 
   /** Creates a new ArmSubsystem. */
   public ArmSubsystem() {
-    leftMotor = new TalonFX(leftMotorID, canbus);
-    rightMotor = new TalonFX(rightMotorID, canbus);
-    cancoder = new CANcoder(cancoderID, canbus);
+    Timer.delay(0.5);
     setpoint = getPositionDegrees();
 
     //Setup Mechanism
@@ -91,14 +85,25 @@ public class ArmSubsystem extends SubsystemBase {
     mechanismLigament2d = mechanismRoot.append(
       new MechanismLigament2d("armLength", armCOM, getPositionDegrees())
     );
+
+    if(Utils.isSimulation()){
+      configSim();
+    }
   }
 
-  public void configMotors(){
+  public void configDevices(){
+
     leftMotor.getConfigurator().apply(motorConfig.withMotorOutput(
       new MotorOutputConfigs().withInverted(leftInverted)));
     rightMotor.getConfigurator().apply(motorConfig.withMotorOutput(
       new MotorOutputConfigs().withInverted(rightInverted)));
     cancoder.getConfigurator().apply(cancoderConfig); 
+
+    leftMotor.clearStickyFaults();
+    rightMotor.clearStickyFaults();
+    cancoder.clearStickyFaults();
+    leftMotor.clearStickyFault_RemoteSensorDataInvalid();
+    rightMotor.clearStickyFault_RemoteSensorDataInvalid();
   }
 
   //Ideally don't use, add periodic functions in RobotContainer
@@ -106,11 +111,13 @@ public class ArmSubsystem extends SubsystemBase {
   public void periodic() {}
 
   public double getPositionDegrees(){
-    return Units.rotationsToDegrees(cancoder.getPosition().getValueAsDouble());
+    double position = leftMotor.getPosition().getValueAsDouble();
+    return Units.rotationsToDegrees(position);
   }
   
   public double getVelocityDegPerSec(){
-    return Units.rotationsToDegrees(cancoder.getVelocity().getValueAsDouble());
+    double velocity = leftMotor.getVelocity().getValueAsDouble();
+    return Units.rotationsToDegrees(velocity);
   }
 
   public void logPeriodic(){
@@ -135,22 +142,24 @@ public class ArmSubsystem extends SubsystemBase {
     if(targetAngle > maxAngle){
       setpoint = maxAngle;
       GremlinLogger.logFault("Setpoint Exceeds Max Angle");
+      System.out.println("too High");
     } else if (targetAngle < minAngle){
       setpoint = minAngle;
       GremlinLogger.logFault("Setpoint Below Min Angle");
+      System.out.println("too low");
     } else{
       setpoint = targetAngle;
     }
 
     MotionMagicVoltage request = new MotionMagicVoltage(targetAngle)
-      .withEnableFOC(true).withSlot(0).withUpdateFreqHz(50);
+      .withEnableFOC(false).withSlot(0).withUpdateFreqHz(50);
 
     leftMotor.setControl(request);
     rightMotor.setControl(request);
   }
 
   public Command goToAngle(DoubleSupplier angle){
-    return this.run(() -> {
+    return this.runOnce(() -> {
       setTarget(angle.getAsDouble());
     });
   }
@@ -173,17 +182,29 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public Command increaseAngle(){
-    return goToAngle(() -> getPositionDegrees() + 5);
+    return goToAngle(() -> setpoint + 5);
   }
 
   public Command decreaseAngle(){
-    return goToAngle(() -> getPositionDegrees() - 5);
+    return goToAngle(() -> setpoint - 5);
   }
 
   public void configSim(){
     leftMotorSimState = leftMotor.getSimState();
     rightMotorSimState = rightMotor.getSimState();
     cancoderSimState = cancoder.getSimState();
+
+    leftMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    rightMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    cancoderSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+
+    leftMotorSimState.Orientation = ChassisReference.Clockwise_Positive;
+    rightMotorSimState.Orientation = ChassisReference.CounterClockwise_Positive;
+    cancoderSimState.Orientation = ChassisReference.Clockwise_Positive;
+
+    cancoderSimState.setMagnetHealth(MagnetHealthValue.Magnet_Green);
+
+    armSim.setState(Units.degreesToRadians(getPositionDegrees()), 0);
   }
 
   @Override
@@ -192,35 +213,25 @@ public class ArmSubsystem extends SubsystemBase {
     rightMotorSimState = rightMotor.getSimState();
     cancoderSimState = cancoder.getSimState();
 
-    leftMotorSimState.setSupplyVoltage(12);
-    rightMotorSimState.setSupplyVoltage(12);
-    cancoderSimState.setSupplyVoltage(12);
-
-    leftMotorSimState.Orientation = ChassisReference.Clockwise_Positive;
-    rightMotorSimState.Orientation = ChassisReference.CounterClockwise_Positive;
-
     armSim.setInputVoltage(leftMotorSimState.getMotorVoltage());
-    armSim.update(0.02);
+    armSim.update(0.020);
 
-    leftMotorSimState.setRawRotorPosition(
-      GremlinUtil.valueAfterGearing(Units.radiansToRotations(armSim.getAngleRads()), totalGearing));
-    leftMotorSimState.setRotorVelocity(
-      GremlinUtil.valueAfterGearing(Units.radiansToRotations(armSim.getVelocityRadPerSec()), totalGearing));
-
-    rightMotorSimState.setRawRotorPosition(
-      GremlinUtil.valueAfterGearing(Units.radiansToRotations(armSim.getAngleRads()), totalGearing));
-    rightMotorSimState.setRotorVelocity(
-      GremlinUtil.valueAfterGearing(Units.radiansToRotations(armSim.getVelocityRadPerSec()), totalGearing));
+    double angle = armSim.getAngleRads();
 
     cancoderSimState.setRawPosition(
-      GremlinUtil.valueAfterGearing(Units.degreesToRotations(armSim.getAngleRads()), sensorToMechanismRatio));
-    cancoderSimState.setVelocity(
-      GremlinUtil.valueAfterGearing(Units.degreesToRotations(armSim.getVelocityRadPerSec()), sensorToMechanismRatio));
-  
+      Units.radiansToRotations(angle / sensorToMechanismRatio));
+    
+    rightMotorSimState.setRawRotorPosition(
+      Units.radiansToRotations(angle / totalGearing));
 
-    RoboRioSim.setVInVoltage(
-      BatterySim.calculateDefaultBatteryLoadedVoltage(armSim.getCurrentDrawAmps())
-    );
+    leftMotorSimState.setRawRotorPosition(
+      Units.radiansToRotations(angle / totalGearing));
+
+    System.out.println("rotor set to: " + Units.radiansToRotations(angle / totalGearing));
+    System.out.println("Arm Angle: " + Units.radiansToDegrees(angle));
+    System.out.println("Angle cancoder: " + Units.rotationsToDegrees(cancoder.getPosition().getValueAsDouble() * sensorToMechanismRatio));
+    System.out.println("Angle Motor: " + leftMotor.getPosition().getValueAsDouble());
+    System.out.println();
 
     logPeriodic();
     displayMechanism();

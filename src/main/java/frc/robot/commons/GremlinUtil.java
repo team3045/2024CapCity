@@ -28,4 +28,11 @@ public class GremlinUtil {
         return plantValue / gearing;
     }
 
+    public static double average(Double... doubles){
+        double total = 0;
+        for(double x : doubles) total += x;
+
+        return total / doubles.length;
+    }
+
 }
