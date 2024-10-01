@@ -256,12 +256,12 @@ public class ArmSubsystem extends SubsystemBase {
 
     double angle = armSim.getAngleRads();
 
-    cancoderSimState.setRawPosition(Units.radiansToRotations(angle / sensorToMechanismRatio));
-    rightMotorSimState.setRawRotorPosition(Units.radiansToRotations(angle / totalGearing));
-    leftMotorSimState.setRawRotorPosition(Units.radiansToRotations(angle / totalGearing));
+    cancoderSimState.setRawPosition(Units.radiansToRotations(angle * sensorToMechanismRatio));
+    rightMotorSimState.setRawRotorPosition(Units.radiansToRotations(angle * totalGearing));
+    leftMotorSimState.setRawRotorPosition(Units.radiansToRotations(angle * totalGearing));
 
-    rightMotorSimState.setRotorVelocity(Units.radiansToRotations(armSim.getVelocityRadPerSec() / totalGearing));
-    leftMotorSimState.setRotorVelocity(Units.radiansToRotations(armSim.getVelocityRadPerSec() / totalGearing));
+    rightMotorSimState.setRotorVelocity(Units.radiansToRotations(armSim.getVelocityRadPerSec() * totalGearing));
+    leftMotorSimState.setRotorVelocity(Units.radiansToRotations(armSim.getVelocityRadPerSec() * totalGearing));
 
     logPeriodic();
     displayMechanism();
