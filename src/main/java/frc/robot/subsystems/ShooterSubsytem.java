@@ -7,18 +7,22 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import static frc.robot.constants.ShooterConstants.*;
 
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commons.DistanceSensorReader;
+import frc.robot.commons.GremlinLogger;
 
 public class ShooterSubsytem extends SubsystemBase {
   private final TalonFX leftShooter;
@@ -41,7 +45,15 @@ public class ShooterSubsytem extends SubsystemBase {
   private static final FlywheelSim LEFT_FLYWHEEL_SIM = new FlywheelSim(
     DCMotor.getKrakenX60(1), 
     gearing, 
-    feedMotorID);
+    momentOfInertia);
+
+  private static final FlywheelSim RIGHT_FLYWHEEL_SIM = new FlywheelSim(
+    DCMotor.getKrakenX60(1), 
+    gearing, 
+    momentOfInertia);
+
+  private TalonFXSimState leftSimState;
+  private TalonFXSimState rightSimState;
 
   /** Creates a new ShooterSubsytem. */
   public ShooterSubsytem() {
@@ -93,14 +105,14 @@ public class ShooterSubsytem extends SubsystemBase {
 
   public void setShooterSpeed(double requestedVelo){
     MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(requestedVelo)
-      .withEnableFOC(true).withUpdateFreqHz(500).withSlot(0);
+      .withEnableFOC(false).withUpdateFreqHz(500).withSlot(0);
     leftShooter.setControl(request);
     rightShooter.setControl(request);
   }
 
   public Command revShooters(){
-    mState = ShooterState.REVVING;
     return this.run(() -> {
+      mState = ShooterState.REVVING;
       setShooterSpeed(shootingVelocity);
     }).withName("Revving Motors");
   }
@@ -116,6 +128,7 @@ public class ShooterSubsytem extends SubsystemBase {
   //shooters neutral mode should be coast
   public Command coastShooters(){
     return this.run(() -> {
+      mState = ShooterState.IDLE;
       leftShooter.setControl(new NeutralOut());
       rightShooter.setControl(new NeutralOut());
     }).withName("Coast Shooters");
@@ -131,10 +144,26 @@ public class ShooterSubsytem extends SubsystemBase {
   @Override
   public void periodic() {
     hasGamePiece = rangeSensor.getRange() < hasNoteThreshold; //cache sensor value so its same every iteration
+    logPeriodic();
+  }
+
+  public void logPeriodic(){
+    GremlinLogger.logTalonFX(path + "leftShooter", leftShooter);
+    GremlinLogger.logTalonFX(path + "rightShooter", rightShooter);
+    GremlinLogger.logTalonFX(path + "feedMotor", feedMotor);
+
+    GremlinLogger.log(path + "LeftShooter/Velocity", feedMotorID);
+    GremlinLogger.log(path + "RightShooter/Velocity", feedMotorID);
+    GremlinLogger.log(path + "Has Note", hasNote.getAsBoolean());
+    GremlinLogger.log(path + "State", mState.toString());
+
+    SmartDashboard.putNumber(path + "LeftShooter/Velocity", feedMotorID);
+    SmartDashboard.putNumber(path + "RightShooter/Velocity", feedMotorID);
+    SmartDashboard.putBoolean(path + "Has Note", hasNote.getAsBoolean());
+    SmartDashboard.putString(path + "State", mState.toString());
   }
 
   //TRIGGERS
-
   public final Trigger isIdle = new Trigger(() -> mState == ShooterState.IDLE);
   public final Trigger isRevving = new Trigger(() -> mState == ShooterState.REVVING);
   public final Trigger isShooting = new Trigger(() -> mState == ShooterState.SHOOTING);
@@ -150,8 +179,29 @@ public class ShooterSubsytem extends SubsystemBase {
   public final Trigger shouldFeed = isShooting.and(hasNote);
   public final Trigger shouldRev = isRevving.and(hasNote);
 
+  public void configSim(){
+    leftSimState = leftShooter.getSimState();
+    rightSimState = rightShooter.getSimState();
+
+    leftSimState.setSupplyVoltage(RobotController.getInputVoltage());
+    rightSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    
+    LEFT_FLYWHEEL_SIM.setState(0);
+    RIGHT_FLYWHEEL_SIM.setState(0);
+  }
+
   @Override
   public void simulationPeriodic(){
+    leftSimState = leftShooter.getSimState();
+    rightSimState = rightShooter.getSimState();
 
+    LEFT_FLYWHEEL_SIM.setInputVoltage(leftSimState.getMotorVoltage());
+    RIGHT_FLYWHEEL_SIM.setInputVoltage(rightSimState.getMotorVoltage());
+
+    leftSimState.setRotorVelocity(LEFT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60 * gearing);
+    rightSimState.setRotorVelocity(RIGHT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60 * gearing);
+    System.out.println("Hi");
+
+    logPeriodic();
   }
 }

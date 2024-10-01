@@ -9,7 +9,8 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+
+import frc.robot.commons.GremlinUtil;
 
 /** Add your docs here. */
 public class ShooterConstants {
@@ -23,6 +24,9 @@ public class ShooterConstants {
 
     public static final double shootingVelocity = 10; //rot per seconds
     public static final double feedingVelocity = 10;
+
+    //LOGPATH
+    public static final String path = "ShooterSubsystem/";
 
     //Current Limits
     public static final double maxStatorCurrent = 80; //Amps
@@ -38,6 +42,9 @@ public class ShooterConstants {
     public static final double kV = 0; //voltage based on requested velocity
     public static final double kA = 0; //voltage based on requested acceleration
     public static final double kS = 0; //Voltage to overcome friction
+
+    //PHYSICS
+    public static final double momentOfInertia = GremlinUtil.lbIn2TokgM2(1.169 * 2); //pound inches^2, multiply by two bc two wheels per motor
 
     //GEARING
     public static final double gearing = 1.0 / 1.5; //1 motor rotation = 1.5 flywheel rotations
