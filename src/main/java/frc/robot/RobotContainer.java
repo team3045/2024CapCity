@@ -67,8 +67,8 @@ public class RobotContainer {
     joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    joystick.L1().whileTrue(arm.increaseAngle().alongWith(Commands.print("Increasing Angle")).repeatedly());
-    joystick.R1().whileTrue(arm.decreaseAngle().alongWith(Commands.print("Decreasing Angle")).repeatedly());
+    joystick.L1().whileTrue(arm.increaseAngle().repeatedly());
+    joystick.R1().whileTrue(arm.decreaseAngle().repeatedly());
   }
 
   public RobotContainer() {
@@ -77,6 +77,9 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     /* First put the drivetrain into auto run mode, then run the auto */
+    //return runAuto;
+
+
     return arm.increaseAngle().repeatedly().withTimeout(5)
       .andThen(arm.decreaseAngle().repeatedly().withTimeout(5));
   }
