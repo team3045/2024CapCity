@@ -104,7 +104,7 @@ public class ArmConstants {
     public static final FeedbackConfigs feedbackConfigs = new FeedbackConfigs()
         .withFeedbackRemoteSensorID(cancoderID)
         .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder)
-        .withSensorToMechanismRatio(1.0 / sensorToMechanismRatio).withFeedbackRotorOffset(0)
+        .withSensorToMechanismRatio(sensorToMechanismRatio).withFeedbackRotorOffset(0)
         .withRotorToSensorRatio(rotorToSensorRatio);
 
     public static final MotionMagicConfigs motionMagic = new MotionMagicConfigs()
