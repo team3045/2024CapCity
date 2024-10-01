@@ -11,7 +11,9 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import static frc.robot.constants.ShooterConstants.*;
 
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -36,6 +38,11 @@ public class ShooterSubsytem extends SubsystemBase {
 
   private ShooterState mState = ShooterState.IDLE;
 
+  private static final FlywheelSim LEFT_FLYWHEEL_SIM = new FlywheelSim(
+    DCMotor.getKrakenX60(1), 
+    gearing, 
+    feedMotorID);
+
   /** Creates a new ShooterSubsytem. */
   public ShooterSubsytem() {
     rangeSensor.run();
@@ -52,7 +59,8 @@ public class ShooterSubsytem extends SubsystemBase {
   }
 
   public void configMotors(){
-    //TODO: add configuration
+    leftShooter.getConfigurator().apply(config);
+    rightShooter.getConfigurator().apply(config);
   }
 
   //This is the internal command factory to set state
@@ -141,4 +149,9 @@ public class ShooterSubsytem extends SubsystemBase {
   //isShooting is only enabled after revving has finished so we don't need to check for speed
   public final Trigger shouldFeed = isShooting.and(hasNote);
   public final Trigger shouldRev = isRevving.and(hasNote);
+
+  @Override
+  public void simulationPeriodic(){
+
+  }
 }
