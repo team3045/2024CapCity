@@ -39,6 +39,11 @@
         "window": {
           "visible": true
         }
+      },
+      "/SmartDashboard/ArmSubsystem/Mechanism": {
+        "window": {
+          "visible": true
+        }
       }
     }
   },
@@ -62,5 +67,23 @@
       }
     },
     "visible": true
+  },
+  "Plot": {
+    "Plot <0>": {
+      "plots": [
+        {
+          "backgroundColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.8500000238418579
+          ],
+          "height": 338
+        }
+      ],
+      "window": {
+        "visible": false
+      }
+    }
   }
 }

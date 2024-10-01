@@ -33,6 +33,7 @@ public class ArmConstants {
     public static final double armMOI = GremlinUtil.lbIn2TokgM2(3490); //in^2 lb
     public static final double armCOM = Units.inchesToMeters(15.044); //Close enough to directly below pivot for our purposes
     public static final double armMass = Units.lbsToKilograms(17.044);
+    public static final double mech2dOffset = 90; //degrees
    
     //ANGLES
     public static final double minAngle = 18.26; //degrees
@@ -78,7 +79,7 @@ public class ArmConstants {
 
     //Control Loop Gains
     public static final GravityTypeValue gravity = GravityTypeValue.Arm_Cosine; //scale kG based on the arm angle
-    public static final double kP = 10; 
+    public static final double kP = 300; 
     public static final double kI = 0; 
     public static final double kD = 0; 
     public static final double kG = 0; //voltage required to overcome gravity
@@ -131,6 +132,6 @@ public class ArmConstants {
     public static final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration()
         .withMagnetSensor(new MagnetSensorConfigs()
             .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
-            .withMagnetOffset(-0.25) //TODO: CHANGE AFTER SIMULATION
+            .withMagnetOffset(-0.25) 
             .withSensorDirection(cancoderInvert));
 }

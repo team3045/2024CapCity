@@ -85,7 +85,7 @@ public class ArmSubsystem extends SubsystemBase {
     mechanism = new Mechanism2d(canvasWidth, canvasHeight);
     mechanismRoot = mechanism.getRoot("pivot", rootX, rootY);
     mechanismLigament2d = mechanismRoot.append(
-      new MechanismLigament2d("armLength", armCOM, getPositionDegrees())
+      new MechanismLigament2d("armLength", armCOM, -minAngle + mech2dOffset)
     );
 
     if(Utils.isSimulation()){
@@ -182,7 +182,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void displayMechanism(){
-    mechanismLigament2d.setAngle(getAngleRotation2d());
+    mechanismLigament2d.setAngle(getAngleRotation2d().times(-1).minus(Rotation2d.fromDegrees(mech2dOffset)));
     SmartDashboard.putData(path + "Mechanism", mechanism);
   }
 
@@ -195,7 +195,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void configSim(){
-    armSim.setState(Math.PI/2, 0);
+    armSim.setState(0, 0);
     leftMotorSimState = leftMotor.getSimState();
     rightMotorSimState = rightMotor.getSimState();
     cancoderSimState = cancoder.getSimState();
@@ -227,11 +227,12 @@ public class ArmSubsystem extends SubsystemBase {
     rightMotorSimState.setRotorVelocity(Units.radiansToRotations(armSim.getVelocityRadPerSec() / totalGearing));
     leftMotorSimState.setRotorVelocity(Units.radiansToRotations(armSim.getVelocityRadPerSec() / totalGearing));
 
-    // System.out.println("rotor set to: " + Units.radiansToRotations(angle / totalGearing));
-    // System.out.println("Arm Angle: " + Units.radiansToDegrees(angle));
-    // System.out.println("Angle cancoder: " + Units.rotationsToDegrees(cancoder.getPosition().getValueAsDouble() * sensorToMechanismRatio));
-    // System.out.println("Angle Motor: " + Units.rotationsToDegrees(leftMotor.getPosition().getValueAsDouble()));
-    // System.out.println();
+    System.out.println("rotor set to: " + Units.radiansToRotations(angle / totalGearing));
+    System.out.println("Arm Angle: " + Units.radiansToDegrees(angle));
+    System.out.println("Angle cancoder: " + Units.rotationsToDegrees(cancoder.getPosition().getValueAsDouble() * sensorToMechanismRatio));
+    System.out.println("Angle Motor: " + Units.rotationsToDegrees(leftMotor.getPosition().getValueAsDouble()));
+    System.out.println("Motor Voltage: " + leftMotor.getMotorVoltage());
+    System.out.println();
 
     logPeriodic();
     displayMechanism();

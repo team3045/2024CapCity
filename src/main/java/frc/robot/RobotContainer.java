@@ -77,6 +77,7 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     /* First put the drivetrain into auto run mode, then run the auto */
-    return runAuto;
+    return arm.increaseAngle().repeatedly().withTimeout(5)
+      .andThen(arm.decreaseAngle().repeatedly().withTimeout(5));
   }
 }
