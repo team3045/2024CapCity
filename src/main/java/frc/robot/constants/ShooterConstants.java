@@ -40,7 +40,7 @@ public class ShooterConstants {
     public static final double kS = 0; //Voltage to overcome friction
 
     //GEARING
-    public static final double gearing = 1.5; //1 motor rotation = 1.5 flywheel rotations
+    public static final double gearing = 1.0 / 1.5; //1 motor rotation = 1.5 flywheel rotations
 
     //VELOCITY AND ACCELERATIOn
     public static final double maxVel = 1;
@@ -55,7 +55,7 @@ public class ShooterConstants {
         .withSupplyCurrentLimitEnable(enableSupplyCurrentLimit);
 
     public static final FeedbackConfigs FEEDBACK_CONFIGS = new FeedbackConfigs()
-        .withSensorToMechanismRatio(1.0 / gearing);
+        .withSensorToMechanismRatio(gearing);
 
     public static final MotionMagicConfigs MOTION_MAGIC_CONFIGS = new MotionMagicConfigs()
         .withMotionMagicAcceleration(maxAccel)
