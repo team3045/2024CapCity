@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.constants.ArmConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -34,6 +35,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commons.GremlinLogger;
@@ -76,8 +78,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   /** Creates a new ArmSubsystem. */
   public ArmSubsystem() {
-    Timer.delay(0.5);
-    setpoint = getPositionDegrees();
+    configDevices();
+    setpoint = 0;
 
     //Setup Mechanism
     mechanism = new Mechanism2d(canvasWidth, canvasHeight);
@@ -110,6 +112,7 @@ public class ArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {}
 
+  //TODO: Change to differential
   public double getPositionDegrees(){
     double position = leftMotor.getPosition().getValueAsDouble();
     return Units.rotationsToDegrees(position);
@@ -151,7 +154,9 @@ public class ArmSubsystem extends SubsystemBase {
       setpoint = targetAngle;
     }
 
-    MotionMagicVoltage request = new MotionMagicVoltage(targetAngle)
+    System.out.println("Setpoint: " + setpoint);
+
+    MotionMagicVoltage request = new MotionMagicVoltage(Units.degreesToRotations(setpoint))
       .withEnableFOC(false).withSlot(0).withUpdateFreqHz(50);
 
     leftMotor.setControl(request);
@@ -182,14 +187,15 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public Command increaseAngle(){
-    return goToAngle(() -> setpoint + 5);
+    return goToAngle(() -> getPositionDegrees() + 5).alongWith(Commands.print("Position: " + getPositionDegrees())); //position is 0 IDK what bug is
   }
 
   public Command decreaseAngle(){
-    return goToAngle(() -> setpoint - 5);
+    return goToAngle(() -> getPositionDegrees() - 5).alongWith(Commands.print("Position: " + getPositionDegrees()));
   }
 
   public void configSim(){
+    armSim.setState(Math.PI/2, 0);
     leftMotorSimState = leftMotor.getSimState();
     rightMotorSimState = rightMotor.getSimState();
     cancoderSimState = cancoder.getSimState();
@@ -201,10 +207,6 @@ public class ArmSubsystem extends SubsystemBase {
     leftMotorSimState.Orientation = ChassisReference.Clockwise_Positive;
     rightMotorSimState.Orientation = ChassisReference.CounterClockwise_Positive;
     cancoderSimState.Orientation = ChassisReference.Clockwise_Positive;
-
-    cancoderSimState.setMagnetHealth(MagnetHealthValue.Magnet_Green);
-
-    armSim.setState(Units.degreesToRadians(getPositionDegrees()), 0);
   }
 
   @Override
@@ -218,20 +220,18 @@ public class ArmSubsystem extends SubsystemBase {
 
     double angle = armSim.getAngleRads();
 
-    cancoderSimState.setRawPosition(
-      Units.radiansToRotations(angle / sensorToMechanismRatio));
-    
-    rightMotorSimState.setRawRotorPosition(
-      Units.radiansToRotations(angle / totalGearing));
+    cancoderSimState.setRawPosition(Units.radiansToRotations(angle / sensorToMechanismRatio));
+    rightMotorSimState.setRawRotorPosition(Units.radiansToRotations(angle / totalGearing));
+    leftMotorSimState.setRawRotorPosition(Units.radiansToRotations(angle / totalGearing));
 
-    leftMotorSimState.setRawRotorPosition(
-      Units.radiansToRotations(angle / totalGearing));
+    rightMotorSimState.setRotorVelocity(Units.radiansToRotations(armSim.getVelocityRadPerSec() / totalGearing));
+    leftMotorSimState.setRotorVelocity(Units.radiansToRotations(armSim.getVelocityRadPerSec() / totalGearing));
 
-    System.out.println("rotor set to: " + Units.radiansToRotations(angle / totalGearing));
-    System.out.println("Arm Angle: " + Units.radiansToDegrees(angle));
-    System.out.println("Angle cancoder: " + Units.rotationsToDegrees(cancoder.getPosition().getValueAsDouble() * sensorToMechanismRatio));
-    System.out.println("Angle Motor: " + leftMotor.getPosition().getValueAsDouble());
-    System.out.println();
+    // System.out.println("rotor set to: " + Units.radiansToRotations(angle / totalGearing));
+    // System.out.println("Arm Angle: " + Units.radiansToDegrees(angle));
+    // System.out.println("Angle cancoder: " + Units.rotationsToDegrees(cancoder.getPosition().getValueAsDouble() * sensorToMechanismRatio));
+    // System.out.println("Angle Motor: " + Units.rotationsToDegrees(leftMotor.getPosition().getValueAsDouble()));
+    // System.out.println();
 
     logPeriodic();
     displayMechanism();
