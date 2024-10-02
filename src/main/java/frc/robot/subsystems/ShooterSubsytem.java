@@ -12,6 +12,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import static frc.robot.constants.ShooterConstants.*;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Notifier;
@@ -32,6 +33,7 @@ public class ShooterSubsytem extends SubsystemBase {
   private final DistanceSensorReader rangeSensor = new DistanceSensorReader();
   private final Notifier rangeSensorNotifer = new Notifier(rangeSensor);
   private boolean hasGamePiece;
+  private double setpoint;
 
   public enum ShooterState{
     IDLE, 
@@ -73,11 +75,26 @@ public class ShooterSubsytem extends SubsystemBase {
     if(Utils.isSimulation()){
       configSim();
     }
+
+    setpoint = 0;
   }
 
   public void configMotors(){
     leftShooter.getConfigurator().apply(config);
     rightShooter.getConfigurator().apply(config);
+  }
+
+  public double getCurrentSpeedLeft(){
+     return leftShooter.getVelocity().getValueAsDouble();
+  }
+
+  public double getCurrentSpeedRight(){
+    return rightShooter.getVelocity().getValueAsDouble();
+  }
+
+  public boolean atTargetSpeed(){
+    return MathUtil.isNear(setpoint, getCurrentSpeedLeft(), speedErrorTolerance)
+      && MathUtil.isNear(setpoint, getCurrentSpeedRight(), speedErrorTolerance);
   }
 
   //This is the internal command factory to set state
@@ -90,10 +107,6 @@ public class ShooterSubsytem extends SubsystemBase {
   //public commands to set state
   public Command setIdle(){
     return setState(ShooterState.IDLE);
-  }
-
-  public Command setRevving(){
-    return setState(ShooterState.REVVING);
   }
 
   public Command setShooting(){
@@ -109,13 +122,15 @@ public class ShooterSubsytem extends SubsystemBase {
   }
 
   public void setShooterSpeed(double requestedVeloRPS){
+    setpoint = requestedVeloRPS;
+
     MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(requestedVeloRPS)
       .withEnableFOC(false).withUpdateFreqHz(500).withSlot(0);
     leftShooter.setControl(request);
     rightShooter.setControl(request);
   }
 
-  public Command revShooters(){
+  public Command setRevving(){
     return this.run(() -> {
       mState = ShooterState.REVVING;
       setShooterSpeed(shootingVelocity);
@@ -131,7 +146,7 @@ public class ShooterSubsytem extends SubsystemBase {
   }
 
   //shooters neutral mode should be coast
-  public Command coastShooters(){
+  public Command coastShootersAndIdle(){
     return this.run(() -> {
       mState = ShooterState.IDLE;
       leftShooter.setControl(new NeutralOut());
@@ -178,11 +193,12 @@ public class ShooterSubsytem extends SubsystemBase {
   // This trigger will be true when there is a game piece in the shooter
   // and stay true for a short time after no game piece is detected.
   // This delay allows the game piece to fully leave the shooter before we power down and stop aiming.
+  //The second trigger will stay try for a short time after note leaves because the velocity drops slightly as the note leaves
   public final Trigger hasNote = new Trigger(() -> hasGamePiece).debounce(hasNoteDebounceTime, DebounceType.kFalling);
+  public final Trigger atSpeed = new Trigger(() -> atTargetSpeed()).debounce(hasNoteDebounceTime, DebounceType.kFalling);
 
   //isShooting is only enabled after revving has finished so we don't need to check for speed
   public final Trigger shouldFeed = isShooting.and(hasNote);
-  public final Trigger shouldRev = isRevving.and(hasNote);
 
   public void configSim(){
     leftSimState = leftShooter.getSimState();
@@ -207,15 +223,6 @@ public class ShooterSubsytem extends SubsystemBase {
 
     leftSimState.setRotorVelocity(LEFT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60 * gearing);
     rightSimState.setRotorVelocity(RIGHT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60 * gearing);
-
-    System.out.println("Left Sim Velocity: " + LEFT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60);
-    System.out.println("Right Sim velocity: " + RIGHT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60);
-    System.out.println("Left Motor Velocity: " + leftShooter.getVelocity().getValueAsDouble());
-    System.out.println("Right Motor Velocity: " + rightShooter.getVelocity().getValueAsDouble());
-    System.out.println("Left Motor Voltage: " + leftShooter.getMotorVoltage());
-    System.out.println("Right Motor Voltage: " + rightShooter.getMotorVoltage());
-    System.out.println();
-    System.out.println();
 
     logPeriodic();
   }
