@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -68,6 +69,10 @@ public class ShooterSubsytem extends SubsystemBase {
     hasGamePiece = rangeSensor.getRange() < hasNoteThreshold; 
 
     configMotors();
+    
+    if(Utils.isSimulation()){
+      configSim();
+    }
   }
 
   public void configMotors(){
@@ -103,8 +108,8 @@ public class ShooterSubsytem extends SubsystemBase {
     return setState(ShooterState.EJECTING);
   }
 
-  public void setShooterSpeed(double requestedVelo){
-    MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(requestedVelo)
+  public void setShooterSpeed(double requestedVeloRPS){
+    MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(requestedVeloRPS)
       .withEnableFOC(false).withUpdateFreqHz(500).withSlot(0);
     leftShooter.setControl(request);
     rightShooter.setControl(request);
@@ -197,10 +202,20 @@ public class ShooterSubsytem extends SubsystemBase {
 
     LEFT_FLYWHEEL_SIM.setInputVoltage(leftSimState.getMotorVoltage());
     RIGHT_FLYWHEEL_SIM.setInputVoltage(rightSimState.getMotorVoltage());
+    LEFT_FLYWHEEL_SIM.update(0.02);
+    RIGHT_FLYWHEEL_SIM.update(0.02);
 
     leftSimState.setRotorVelocity(LEFT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60 * gearing);
     rightSimState.setRotorVelocity(RIGHT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60 * gearing);
-    System.out.println("Hi");
+
+    System.out.println("Left Sim Velocity: " + LEFT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60);
+    System.out.println("Right Sim velocity: " + RIGHT_FLYWHEEL_SIM.getAngularVelocityRPM() / 60);
+    System.out.println("Left Motor Velocity: " + leftShooter.getVelocity().getValueAsDouble());
+    System.out.println("Right Motor Velocity: " + rightShooter.getVelocity().getValueAsDouble());
+    System.out.println("Left Motor Voltage: " + leftShooter.getMotorVoltage());
+    System.out.println("Right Motor Voltage: " + rightShooter.getMotorVoltage());
+    System.out.println();
+    System.out.println();
 
     logPeriodic();
   }

@@ -7,8 +7,10 @@ package frc.robot.constants;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import frc.robot.commons.GremlinUtil;
 
@@ -36,11 +38,11 @@ public class ShooterConstants {
     public static final boolean enableSupplyCurrentLimit = true;
 
     //CONTROL LOOP GAINS
-    public static final double kP = 300; 
+    public static final double kP = 0; 
     public static final double kI = 0; 
     public static final double kD = 0; 
-    public static final double kV = 0; //voltage based on requested velocity
-    public static final double kA = 0; //voltage based on requested acceleration
+    public static final double kV = 0.08; //voltage based on requested velocity
+    public static final double kA = 0.01; //voltage based on requested acceleration
     public static final double kS = 0; //Voltage to overcome friction
 
     //PHYSICS
@@ -50,8 +52,8 @@ public class ShooterConstants {
     public static final double gearing = 1.0 / 1.5; //1 motor rotation = 1.5 flywheel rotations
 
     //VELOCITY AND ACCELERATIOn
-    public static final double maxVel = 1;
-    public static final double maxAccel = 1;
+    public static final double maxVel = 10;
+    public static final double maxAccel = 20;
 
     //Motor Configs
     public static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIGS = new CurrentLimitsConfigs()
@@ -76,9 +78,14 @@ public class ShooterConstants {
         .withKA(kA)
         .withKS(kS);
 
+    public static final MotorOutputConfigs MOTOR_OUTPUT_CONFIGS = new MotorOutputConfigs()
+        .withNeutralMode(NeutralModeValue.Coast);
+
+
     public static final TalonFXConfiguration config = new TalonFXConfiguration()
         .withCurrentLimits(CURRENT_LIMITS_CONFIGS)
         .withFeedback(FEEDBACK_CONFIGS)
         .withMotionMagic(MOTION_MAGIC_CONFIGS)
-        .withSlot0(SLOT0_CONFIGS);
+        .withSlot0(SLOT0_CONFIGS)
+        .withMotorOutput(MOTOR_OUTPUT_CONFIGS);
 }

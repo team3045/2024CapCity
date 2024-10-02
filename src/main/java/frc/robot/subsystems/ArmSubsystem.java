@@ -13,6 +13,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -88,9 +89,9 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public void configDevices(){
     leftMotor.getConfigurator().apply(motorConfig.withMotorOutput(
-      new MotorOutputConfigs().withInverted(leftInverted)));
+      new MotorOutputConfigs().withInverted(leftInverted).withNeutralMode(NeutralModeValue.Brake)));
     rightMotor.getConfigurator().apply(motorConfig.withMotorOutput(
-      new MotorOutputConfigs().withInverted(rightInverted)));
+      new MotorOutputConfigs().withInverted(rightInverted).withNeutralMode(NeutralModeValue.Brake)));
     cancoder.getConfigurator().apply(cancoderConfig); 
 
     leftMotor.clearStickyFaults();
