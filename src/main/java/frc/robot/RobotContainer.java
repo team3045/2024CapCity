@@ -18,30 +18,35 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ShooterSubsytem;
 
 public class RobotContainer {
+  private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
+  private double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
+
   /* Setting up bindings for necessary control of the swerve drive platform */
   private final CommandPS4Controller joystick = new CommandPS4Controller(0); // My joystick
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
   public final ArmSubsystem arm = new ArmSubsystem();
   public final ShooterSubsytem shooter = new ShooterSubsytem();
 
+  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
+                                                               // driving in open loop
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
   /* Path follower */
-  @SuppressWarnings("unused")
   private Command runAuto = drivetrain.getAutoPath("Tests");
 
-  private final Telemetry logger = new Telemetry(CommandSwerveDrivetrain.MaxSpeed);
+  private final Telemetry logger = new Telemetry(MaxSpeed);
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand(
-      drivetrain.getDriveCommand(
-        -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed, 
-        -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed,
-        -joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate
-        , drivetrain.aimAtSpeakerMoving())
-    );
+    drivetrain.setDefaultCommand( // Drivetrain will execute this command periodically
+        drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with
+                                                                                           // negative Y (forward)
+            .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+            .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+        ).ignoringDisable(true));
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
     joystick.circle().whileTrue(drivetrain
@@ -64,21 +69,8 @@ public class RobotContainer {
     joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    joystick.L1().onTrue(shooter.setRevving().alongWith(Commands.print("Revving")));
-    joystick.R1().onTrue(shooter.coastShootersAndIdle().alongWith(Commands.print("Coasting")));
-
-    /*Bindings to set State of Shooter*/
-    joystick.L1().onTrue(shooter.setRevving()); //TODO: add commands to aim the arm and robot
-
-    /*Triggers to deal with State of Shooter */
-    shooter.isRevving 
-      .and(shooter.hasNote)
-      .and(shooter.atSpeed)
-      .and(arm.atTarget) //TODO: at a check that were within range and aimed at target
-      .whileTrue(shooter.setShooting().andThen(shooter.feedNote()));
-    
-      //Once the note is gone we're done shooting so we go idle and coast the shooters
-    shooter.isShooting.and(shooter.hasNote.negate()).whileTrue(shooter.coastShootersAndIdle());  
+    joystick.L1().onTrue(shooter.revShooters().alongWith(Commands.print("Revving")));
+    joystick.R1().onTrue(shooter.coastShooters().alongWith(Commands.print("COasting")));
   }
 
   public RobotContainer() {

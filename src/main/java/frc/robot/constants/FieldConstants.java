@@ -167,7 +167,6 @@ public class FieldConstants {
 
   // Target Rectangle
   public static final Pose3d tagSevenPose = aprilTags.getTagPose(7).get();
-  public static final Pose3d tagThreePose = aprilTags.getTagPose(3).get();
 
   // public static final Translation3d[] targetVerticies = {
   //   new Translation3d(
@@ -208,7 +207,6 @@ public class FieldConstants {
   };
 
   public static final Pose2d targetPoseBlue = tagSevenPose.toPose2d();
-  public static final Pose2d targetPoseRed = tagThreePose.toPose2d();
 
   public static final double targetWidth = Units.inchesToMeters(42);
 }
