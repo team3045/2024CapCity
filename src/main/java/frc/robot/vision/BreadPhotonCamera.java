@@ -7,6 +7,7 @@ package frc.robot.vision;
 import java.util.Optional;
 import java.util.Set;
 
+import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonVersion;
 import org.photonvision.common.hardware.VisionLEDMode;
 import org.photonvision.common.networktables.PacketSubscriber;
@@ -241,6 +242,10 @@ public class BreadPhotonCamera implements AutoCloseable{
      */
     public Pose3d getCameraPose(){
         return camPose;
+    }
+
+    public PhotonCamera getPhotonCamera(){
+        return new PhotonCamera(getName());
     }
 
     /**
