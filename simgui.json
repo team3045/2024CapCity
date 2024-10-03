@@ -52,12 +52,20 @@
       "open": false
     },
     "transitory": {
+      "Drive": {
+        "open": true
+      },
+      "Pose": {
+        "double[]##v_/Pose/robotPose": {
+          "open": true
+        },
+        "open": true
+      },
       "SmartDashboard": {
         "ShooterSubsystem": {
           "LeftShooter": {
             "open": true
-          },
-          "open": true
+          }
         },
         "open": true
       }

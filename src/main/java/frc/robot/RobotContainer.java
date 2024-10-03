@@ -37,10 +37,10 @@ public class RobotContainer {
   private void configureBindings() {
     drivetrain.setDefaultCommand(
       drivetrain.getDriveCommand(
-        -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed, 
-        -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed,
-        -joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate
-        , drivetrain.aimAtSpeakerMoving())
+        () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
+        ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed,
+        () -> joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate
+        , () -> drivetrain.aimAtSpeakerMoving())
     );
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -64,17 +64,22 @@ public class RobotContainer {
     joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    joystick.L1().onTrue(shooter.setRevving().alongWith(Commands.print("Revving")));
-    joystick.R1().onTrue(shooter.coastShootersAndIdle().alongWith(Commands.print("Coasting")));
-
     /*Bindings to set State of Shooter*/
-    joystick.L1().onTrue(shooter.setRevving()); //TODO: add commands to aim the arm and robot
+
+    //TODO: Should set the arm to start aiming / tracking target, should have drivetrain start aiming towards target
+    //Should have shooters rev, Essentially sets everything up for the later trigger
+    joystick.L1().toggleOnTrue(shooter.setRevving().alongWith(drivetrain.toggleAimingAtTarget())); 
+    joystick.R1().onTrue(shooter.coastShootersAndIdle());
+
+    //For testing
+    joystick.triangle().onTrue(drivetrain.toggleAimingAtTarget().alongWith(Commands.print("Hiv")));
 
     /*Triggers to deal with State of Shooter */
     shooter.isRevving 
       .and(shooter.hasNote)
       .and(shooter.atSpeed)
-      .and(arm.atTarget) //TODO: at a check that were within range and aimed at target
+      .and(arm.atTarget)
+      .and(drivetrain.withinRange) //TODO: add a check that a main "shooter" camera sees the target
       .whileTrue(shooter.setShooting().andThen(shooter.feedNote()));
     
       //Once the note is gone we're done shooting so we go idle and coast the shooters
