@@ -7,6 +7,7 @@ package frc.robot.vision;
 import java.util.Optional;
 import java.util.Set;
 
+import org.opencv.photo.Photo;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonVersion;
 import org.photonvision.common.hardware.VisionLEDMode;
@@ -46,6 +47,7 @@ public class BreadPhotonCamera implements AutoCloseable{
     private final String path;
     private final String name;
     private final Pose3d camPose;
+    private final PhotonCamera photonCamera;
 
     private final NetworkTable cameraTable;
     public PacketSubscriber<PhotonPipelineResult> resultSubscriber;
@@ -80,6 +82,9 @@ public class BreadPhotonCamera implements AutoCloseable{
         var photonvision_root_table = instance.getTable(kTableName);
         this.cameraTable = photonvision_root_table.getSubTable(cameraName);
         path = cameraTable.getPath();
+
+        photonCamera = new PhotonCamera(cameraName);
+
         var rawBytesEntry =
             cameraTable
                 .getRawTopic("rawBytes")
@@ -245,7 +250,7 @@ public class BreadPhotonCamera implements AutoCloseable{
     }
 
     public PhotonCamera getPhotonCamera(){
-        return new PhotonCamera(getName());
+        return photonCamera;
     }
 
     /**

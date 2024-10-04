@@ -67,21 +67,27 @@
       "Pose": {
         "double[]##v_/Pose/robotPose": {
           "open": true
-        },
-        "open": true
+        }
       },
       "SmartDashboard": {
-        "ArmSubsystem": {
+        "VISION": {
+          "CAMERAS": {
+            "left": {
+              "open": true
+            },
+            "open": true,
+            "right": {
+              "open": true
+            }
+          },
           "open": true
         },
         "VisionSystemSim-ApriltagVision": {
           "Sim Field": {
             "double[]##v_/SmartDashboard/VisionSystemSim-ApriltagVision/Sim Field/cameras": {
               "open": true
-            },
-            "open": true
-          },
-          "open": true
+            }
+          }
         },
         "open": true
       }

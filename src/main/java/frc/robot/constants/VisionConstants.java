@@ -54,7 +54,7 @@ public class VisionConstants {
       SimCameraProperties properties = new SimCameraProperties();
       properties.setCalibration(OV2311_RES_HORIZONTAL, OV2311_RES_VERTICAL, Rotation2d.fromDegrees(OV2311_FOV_DIAG));
       properties.setCalibError(0.25, 0.08);
-      properties.setFPS(20);
+      properties.setFPS(50);
       properties.setAvgLatencyMs(35);
       properties.setLatencyStdDevMs(5);
 
