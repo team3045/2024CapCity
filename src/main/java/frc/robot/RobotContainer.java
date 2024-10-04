@@ -9,11 +9,13 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.ShooterSubsytem;
 
 public class RobotContainer {
   private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
@@ -23,6 +25,7 @@ public class RobotContainer {
   private final CommandPS4Controller joystick = new CommandPS4Controller(0); // My joystick
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
   public final ArmSubsystem arm = new ArmSubsystem();
+  public final ShooterSubsytem shooter = new ShooterSubsytem();
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
@@ -66,8 +69,8 @@ public class RobotContainer {
     joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    joystick.L1().whileTrue(arm.increaseAngle().repeatedly());
-    joystick.R1().whileTrue(arm.decreaseAngle().repeatedly());
+    joystick.L1().onTrue(shooter.revShooters().alongWith(Commands.print("Revving")));
+    joystick.R1().onTrue(shooter.coastShooters().alongWith(Commands.print("COasting")));
   }
 
   public RobotContainer() {

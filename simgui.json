@@ -53,7 +53,10 @@
     },
     "transitory": {
       "SmartDashboard": {
-        "ArmSubsystem": {
+        "ShooterSubsystem": {
+          "LeftShooter": {
+            "open": true
+          },
           "open": true
         },
         "open": true
