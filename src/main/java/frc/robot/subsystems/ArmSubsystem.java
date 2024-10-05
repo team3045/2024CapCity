@@ -19,9 +19,15 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -59,6 +65,11 @@ public class ArmSubsystem extends SubsystemBase {
   private MechanismLigament2d mechanismLigament2d;
   private MechanismRoot2d mechanismRoot;
   private Mechanism2d mechanism;
+
+  //Publishing 
+  private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
+  private final NetworkTable armTable = inst.getTable("Positioner");
+  private final StructPublisher<Pose3d> pose3dPublisher = armTable.getStructTopic("Arm Pose3d", Pose3d.struct).publish();
 
   //TRIGGERS
   // Add a trigger for isReady; debounce it so that it doesn't flicker while we're shooting
@@ -114,6 +125,14 @@ public class ArmSubsystem extends SubsystemBase {
   public double getPositionDegrees(){
     double position = leftMotor.getPosition().getValueAsDouble();
     return Units.rotationsToDegrees(position);
+  }
+
+   /**
+   * @return returns current position of arm in Radians
+   */
+  public double getPositionRadians(){
+    double position = leftMotor.getPosition().getValueAsDouble();
+    return Units.rotationsToRadians(position);
   }
   
   /**
@@ -209,6 +228,19 @@ public class ArmSubsystem extends SubsystemBase {
   public void displayMechanism(){
     mechanismLigament2d.setAngle(getAngleRotation2d().times(-1).minus(Rotation2d.fromDegrees(mech2dOffset)));
     SmartDashboard.putData(path + "Mechanism", mechanism);
+
+    double pitch = getPositionRadians();
+
+    double y = 0.6096*Math.sin(pitch);
+    double z = 0.6096 - 0.6096*Math.cos(pitch);
+
+
+    pose3dPublisher.set(new Pose3d(
+      new Translation3d(0,0,0),
+      new Rotation3d(0,0,0)
+    ));
+
+    
   }
 
   /**

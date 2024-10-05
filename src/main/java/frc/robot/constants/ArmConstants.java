@@ -54,6 +54,9 @@ public class ArmConstants {
     public static final double canvasHeight = Units.inchesToMeters(32);
     public static final double rootX = canvasWidth / 2;
     public static final double rootY = Units.inchesToMeters(25.752224);
+    public static final double simX = 0;
+    public static final double simY = 0;
+    public static final double simZ = 0;
 
     //CONFIGURATION
 
