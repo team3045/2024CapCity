@@ -131,7 +131,7 @@ public class ShooterSubsytem extends SubsystemBase {
   }
 
   public Command setRevving(){
-    return this.run(() -> {
+    return this.runOnce(() -> {
       mState = ShooterState.REVVING;
       setShooterSpeed(shootingVelocity);
     }).withName("Revving Motors");
@@ -172,14 +172,15 @@ public class ShooterSubsytem extends SubsystemBase {
     GremlinLogger.logTalonFX(path + "rightShooter", rightShooter);
     GremlinLogger.logTalonFX(path + "feedMotor", feedMotor);
 
-    GremlinLogger.log(path + "LeftShooter/Velocity", feedMotorID);
-    GremlinLogger.log(path + "RightShooter/Velocity", feedMotorID);
+    GremlinLogger.log(path + "LeftShooter/Velocity", getCurrentSpeedLeft());
+    GremlinLogger.log(path + "RightShooter/Velocity", getCurrentSpeedRight());
     GremlinLogger.log(path + "Has Note", hasNote.getAsBoolean());
     GremlinLogger.log(path + "State", mState.toString());
 
-    SmartDashboard.putNumber(path + "LeftShooter/Velocity", feedMotorID);
-    SmartDashboard.putNumber(path + "RightShooter/Velocity", feedMotorID);
+    SmartDashboard.putNumber(path + "LeftShooter/Velocity", getCurrentSpeedLeft());
+    SmartDashboard.putNumber(path + "RightShooter/Velocity", getCurrentSpeedRight());
     SmartDashboard.putBoolean(path + "Has Note", hasNote.getAsBoolean());
+    SmartDashboard.putBoolean(path + "At Speed", atSpeed.getAsBoolean());
     SmartDashboard.putString(path + "State", mState.toString());
   }
 

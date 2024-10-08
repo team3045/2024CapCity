@@ -39,11 +39,6 @@
         "window": {
           "visible": true
         }
-      },
-      "/SmartDashboard/ArmSubsystem/Mechanism": {
-        "window": {
-          "visible": true
-        }
       }
     }
   },
@@ -62,10 +57,14 @@
         "open": true
       },
       "SmartDashboard": {
+        "ArmSubsystem": {
+          "open": true
+        },
         "ShooterSubsystem": {
           "LeftShooter": {
             "open": true
-          }
+          },
+          "open": true
         },
         "open": true
       }
@@ -76,8 +75,7 @@
       "Subscribers": {
         "open": true
       }
-    },
-    "visible": true
+    }
   },
   "Plot": {
     "Plot <0>": {

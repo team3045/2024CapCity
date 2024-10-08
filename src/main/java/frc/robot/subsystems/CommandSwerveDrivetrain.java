@@ -18,6 +18,7 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -45,8 +46,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     public static final double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
     public static final double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
-    public static final double HeadingcontrollerP = 30;
-    public static final double rangeTheshold = 5; //5meters
+    public static final PIDController HEADING_CONTROLLER = new PIDController(10, 0, 0);
+    public static final double rangeTheshold = 3; //3 meters
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -54,8 +55,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private final Rotation2d RedAlliancePerspectiveRotation = Rotation2d.fromDegrees(180);
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean hasAppliedOperatorPerspective = false;
-    /*Toggle between driving while aimed at angle and driver controlling angle */
-    private boolean aimAtAngle = false;
 
     private final SwerveRequest.ApplyChassisSpeeds AutoRequest = new SwerveRequest.ApplyChassisSpeeds();
 
@@ -67,8 +66,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
                                                                // driving in open loop
-    private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
-        .withDeadband(MaxSpeed * 0.1).withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     /* Use one of these sysidroutines for your particular test */
     private SysIdRoutine SysIdRoutineTranslation = new SysIdRoutine(
@@ -110,7 +107,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency, SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
-        driveFacingAngle.HeadingController.setP(HeadingcontrollerP);
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
@@ -165,7 +161,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return RoutineToApply.dynamic(direction);
     }
 
-    public Rotation2d aimAtSpeakerMoving(){
+    public Command aimAtSpeakerMoving(DoubleSupplier vX, DoubleSupplier vY){
+        return driveFacingAngleCommand(vX, vY, () -> getSpeakerAimingPoint());
+    }
+
+    public Rotation2d getSpeakerAimingPoint(){
         Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 
             FieldConstants.targetPoseBlue : FieldConstants.targetPoseRed;
 
@@ -191,22 +191,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return m_kinematics.toChassisSpeeds(getState().ModuleStates);
     }
 
-    public Command getDriveCommand(DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier vOmega,Supplier<Rotation2d> angSupplier){
-        if(!aimAtAngle){
+    public Command getDriveCommand(DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier vOmega){
             return applyRequest(() -> drive.withVelocityX(vX.getAsDouble()) // Drive forward with
                     // negative Y (forward)
                     .withVelocityY(vY.getAsDouble()) // Drive left with negative X (left)
                     .withRotationalRate(vOmega.getAsDouble()));// Drive counterclockwise with negative X (left)
-        } else {
-            return applyRequest(() -> driveFacingAngle
-                .withVelocityX(vX.getAsDouble())
-                .withVelocityY(vY.getAsDouble())
-                .withTargetDirection(angSupplier.get()));
-        }
     }
 
-    public Command toggleAimingAtTarget(){
-        return this.runOnce(() -> aimAtAngle = !aimAtAngle);
+    public Command driveFacingAngleCommand(DoubleSupplier vX, DoubleSupplier vY, Supplier<Rotation2d> angSupplier){
+        return applyRequest(() -> drive
+                .withVelocityX(vX.getAsDouble())
+                .withVelocityY(vY.getAsDouble())
+                .withRotationalRate(HEADING_CONTROLLER.calculate(
+                    getState().Pose.getRotation().getRadians(), angSupplier.get().getRadians())));
     }
 
     private void startSimThread() {

@@ -69,7 +69,7 @@ public class ArmSubsystem extends SubsystemBase {
   /** Creates a new ArmSubsystem. */
   public ArmSubsystem() {
     configDevices();
-    setpoint = 0;
+    setpoint = minAngle;
 
     //Setup Mechanism
     mechanism = new Mechanism2d(canvasWidth, canvasHeight);
@@ -137,10 +137,12 @@ public class ArmSubsystem extends SubsystemBase {
     GremlinLogger.log(path + "Angle (Deg)", getPositionDegrees());
     GremlinLogger.log(path + "Velocity (Deg per Sec)", getVelocityDegPerSec());
     GremlinLogger.log(path + "Target Angle (Deg)", setpoint);
+    GremlinLogger.log(path + "At Position", atTarget.getAsBoolean());
 
     SmartDashboard.putNumber(path + "Angle (Deg)", getPositionDegrees());
     SmartDashboard.putNumber(path + "Velocity (Deg per S)", getVelocityDegPerSec());
     SmartDashboard.putNumber(path + "Target Angle (Deg)", setpoint);
+    SmartDashboard.putBoolean(path + "At Position", atTarget.getAsBoolean());
   }
 
   /**
