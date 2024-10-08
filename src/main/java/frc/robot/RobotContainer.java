@@ -9,9 +9,7 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
@@ -74,7 +72,7 @@ public class RobotContainer {
         drivetrain.aimAtSpeakerMoving(
           () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
           ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed))
-      .alongWith(Commands.none()));
+      .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
     joystick.R1().onTrue(shooter.coastShootersAndIdle());
 
@@ -87,7 +85,9 @@ public class RobotContainer {
       .whileTrue(shooter.setShooting().andThen(shooter.feedNote())); //TODO: add a cancel so we go back to normal rotation maybe
     
       //Once the note is gone we're done shooting so we go idle and coast the shooters
-    shooter.isShooting.and(shooter.hasNote.negate()).whileTrue(shooter.coastShootersAndIdle());  
+    shooter.isShooting.and(shooter.hasNote.negate()).onTrue(
+      shooter.coastShootersAndIdle()
+      .alongWith(arm.goToMin()));  
   }
 
   public RobotContainer() {

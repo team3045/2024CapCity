@@ -187,6 +187,27 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return new Rotation2d(targetRelativeToRobot.getX(), targetRelativeToRobot.getY());
     }
 
+    public double getSpeakerDistanceMoving(){
+        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 
+            FieldConstants.targetPoseBlue : FieldConstants.targetPoseRed;
+
+        Pose2d robotPose = getState().Pose; 
+
+        Translation2d fieldRobotSpeeds = new Translation2d(
+            getState().speeds.vxMetersPerSecond, 
+            getState().speeds.vyMetersPerSecond);
+        
+        /*Predict where target will be based on our current speeds */
+        Translation2d virtualTarget = target.getTranslation()
+            .plus(
+                fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
+                .rotateBy(Rotation2d.fromDegrees(180.0)
+                ));
+
+        Translation2d targetRelativeToRobot = virtualTarget.minus(robotPose.getTranslation());
+        return targetRelativeToRobot.getNorm();
+    }
+
     public ChassisSpeeds getCurrentRobotChassisSpeeds() {
         return m_kinematics.toChassisSpeeds(getState().ModuleStates);
     }

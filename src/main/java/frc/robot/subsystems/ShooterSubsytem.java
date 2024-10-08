@@ -147,7 +147,7 @@ public class ShooterSubsytem extends SubsystemBase {
 
   //shooters neutral mode should be coast
   public Command coastShootersAndIdle(){
-    return this.run(() -> {
+    return this.runOnce(() -> {
       mState = ShooterState.IDLE;
       leftShooter.setControl(new NeutralOut());
       rightShooter.setControl(new NeutralOut());
