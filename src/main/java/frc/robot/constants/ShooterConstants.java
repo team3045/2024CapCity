@@ -47,6 +47,7 @@ public class ShooterConstants {
 
     //PHYSICS
     public static final double momentOfInertia = GremlinUtil.lbIn2TokgM2(1.169 * 2); //pound inches^2, multiply by two bc two wheels per motor
+    public static final double tangentialNoteFlightTime = 0.4; //seconds, we basically asusme notes take the same amount of time to reach speaker
 
     //GEARING
     public static final double gearing = 1.0 / 1.5; //1 motor rotation = 1.5 flywheel rotations
@@ -54,6 +55,7 @@ public class ShooterConstants {
     //VELOCITY AND ACCELERATIOn
     public static final double maxVel = 10;
     public static final double maxAccel = 20;
+    public static final double speedErrorTolerance = 1; //rps
 
     //Motor Configs
     public static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIGS = new CurrentLimitsConfigs()
