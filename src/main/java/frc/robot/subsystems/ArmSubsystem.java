@@ -13,6 +13,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -39,6 +40,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commons.GremlinLogger;
 import frc.robot.commons.GremlinUtil;
+import frc.robot.constants.ArmAngles;
 
 public class ArmSubsystem extends SubsystemBase {
   private TalonFX leftMotor = new TalonFX(leftMotorID, canbus);
@@ -79,7 +81,7 @@ public class ArmSubsystem extends SubsystemBase {
   /** Creates a new ArmSubsystem. */
   public ArmSubsystem() {
     configDevices();
-    setpoint = 0;
+    setpoint = minAngle;
 
     //Setup Mechanism
     mechanism = new Mechanism2d(canvasWidth, canvasHeight);
@@ -99,9 +101,9 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public void configDevices(){
     leftMotor.getConfigurator().apply(motorConfig.withMotorOutput(
-      new MotorOutputConfigs().withInverted(leftInverted)));
+      new MotorOutputConfigs().withInverted(leftInverted).withNeutralMode(NeutralModeValue.Brake)));
     rightMotor.getConfigurator().apply(motorConfig.withMotorOutput(
-      new MotorOutputConfigs().withInverted(rightInverted)));
+      new MotorOutputConfigs().withInverted(rightInverted).withNeutralMode(NeutralModeValue.Brake)));
     cancoder.getConfigurator().apply(cancoderConfig); 
 
     leftMotor.clearStickyFaults();
@@ -155,10 +157,12 @@ public class ArmSubsystem extends SubsystemBase {
     GremlinLogger.log(path + "Angle (Deg)", getPositionDegrees());
     GremlinLogger.log(path + "Velocity (Deg per Sec)", getVelocityDegPerSec());
     GremlinLogger.log(path + "Target Angle (Deg)", setpoint);
+    GremlinLogger.log(path + "At Position", atTarget.getAsBoolean());
 
     SmartDashboard.putNumber(path + "Angle (Deg)", getPositionDegrees());
     SmartDashboard.putNumber(path + "Velocity (Deg per S)", getVelocityDegPerSec());
     SmartDashboard.putNumber(path + "Target Angle (Deg)", setpoint);
+    SmartDashboard.putBoolean(path + "At Position", atTarget.getAsBoolean());
   }
 
   /**
@@ -195,8 +199,9 @@ public class ArmSubsystem extends SubsystemBase {
    * @return A command controlling the arm to travel to the specified angle
    */
   public Command goToAngle(DoubleSupplier angle){
-    return this.runOnce(() -> {
+    return this.run(() -> {
       setTarget(angle.getAsDouble());
+      System.out.println(angle.getAsDouble());
     });
   }
 
@@ -212,6 +217,10 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public Command goToAmp(){
     return goToAngle(() -> ampAngle);
+  }
+
+  public Command goToMin(){
+    return goToAngle(()-> minAngle);
   }
 
   /**
@@ -257,6 +266,14 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public Command decreaseAngle(){
     return goToAngle(() -> getPositionDegrees() - 5);
+  }
+
+  public Command setAngleFromDistance(DoubleSupplier distance){
+    return goToAngle(() -> getAngleFromDistance(distance));
+  }
+
+  public double getAngleFromDistance(DoubleSupplier distance){
+    return ArmAngles.map.get(distance.getAsDouble());
   }
 
   /**

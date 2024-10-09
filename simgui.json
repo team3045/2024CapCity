@@ -39,11 +39,6 @@
         "window": {
           "visible": true
         }
-      },
-      "/SmartDashboard/ArmSubsystem/Mechanism": {
-        "window": {
-          "visible": true
-        }
       }
     }
   },
@@ -52,8 +47,23 @@
       "open": false
     },
     "transitory": {
+      "Drive": {
+        "open": true
+      },
+      "Pose": {
+        "double[]##v_/Pose/robotPose": {
+          "open": true
+        },
+        "open": true
+      },
       "SmartDashboard": {
         "ArmSubsystem": {
+          "open": true
+        },
+        "ShooterSubsystem": {
+          "LeftShooter": {
+            "open": true
+          },
           "open": true
         },
         "open": true
@@ -65,8 +75,7 @@
       "Subscribers": {
         "open": true
       }
-    },
-    "visible": true
+    }
   },
   "Plot": {
     "Plot <0>": {
