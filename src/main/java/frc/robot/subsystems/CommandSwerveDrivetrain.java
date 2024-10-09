@@ -2,12 +2,14 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -16,7 +18,10 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -24,7 +29,10 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.constants.FieldConstants;
+import frc.robot.constants.ShooterConstants;
 import frc.robot.generated.TunerConstants;
 
 /**
@@ -35,6 +43,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
+
+    public static final double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
+    public static final double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
+    public static final PIDController HEADING_CONTROLLER = new PIDController(10, 0, 0);
+    public static final double rangeTheshold = 3; //3 meters
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -48,6 +61,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private final SwerveRequest.SysIdSwerveTranslation TranslationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveRotation RotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
     private final SwerveRequest.SysIdSwerveSteerGains SteerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
+
+    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
+                                                               // driving in open loop
 
     /* Use one of these sysidroutines for your particular test */
     private SysIdRoutine SysIdRoutineTranslation = new SysIdRoutine(
@@ -89,6 +107,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency, SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
+        HEADING_CONTROLLER.enableContinuousInput(-Math.PI/2, Math.PI/2);
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
@@ -97,6 +116,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
         super(driveTrainConstants, modules);
+        HEADING_CONTROLLER.enableContinuousInput(-Math.PI/2, Math.PI/2);
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
@@ -143,8 +163,70 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return RoutineToApply.dynamic(direction);
     }
 
+    public Command aimAtSpeakerMoving(DoubleSupplier vX, DoubleSupplier vY){
+        return driveFacingAngleCommand(vX, vY, () -> getSpeakerAimingPoint());
+    }
+
+    public Rotation2d getSpeakerAimingPoint(){
+        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 
+            FieldConstants.targetPoseBlue : FieldConstants.targetPoseRed;
+
+        Pose2d robotPose = getState().Pose; 
+
+        Translation2d fieldRobotSpeeds = new Translation2d(
+            getState().speeds.vxMetersPerSecond, 
+            getState().speeds.vyMetersPerSecond);
+        
+        /*Predict where target will be based on our current speeds */
+        Translation2d virtualTarget = target.getTranslation()
+            .plus(
+                fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
+                .rotateBy(Rotation2d.fromDegrees(180.0)
+                ));
+
+        Translation2d targetRelativeToRobot = virtualTarget.minus(robotPose.getTranslation());
+
+        return new Rotation2d(targetRelativeToRobot.getX(), targetRelativeToRobot.getY());
+    }
+
+    public double getSpeakerDistanceMoving(){
+        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 
+            FieldConstants.targetPoseBlue : FieldConstants.targetPoseRed;
+
+        Pose2d robotPose = getState().Pose; 
+
+        Translation2d fieldRobotSpeeds = new Translation2d(
+            getState().speeds.vxMetersPerSecond, 
+            getState().speeds.vyMetersPerSecond);
+        
+        /*Predict where target will be based on our current speeds */
+        Translation2d virtualTarget = target.getTranslation()
+            .plus(
+                fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
+                .rotateBy(Rotation2d.fromDegrees(180.0)
+                ));
+
+        Translation2d targetRelativeToRobot = virtualTarget.minus(robotPose.getTranslation());
+        return targetRelativeToRobot.getNorm();
+    }
+
     public ChassisSpeeds getCurrentRobotChassisSpeeds() {
         return m_kinematics.toChassisSpeeds(getState().ModuleStates);
+    }
+
+    public Command getDriveCommand(DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier vOmega){
+            return applyRequest(() -> drive.withVelocityX(vX.getAsDouble()) // Drive forward with
+                    // negative Y (forward)
+                    .withVelocityY(vY.getAsDouble()) // Drive left with negative X (left)
+                    .withRotationalRate(vOmega.getAsDouble()));// Drive counterclockwise with negative X (left)
+    }
+
+    public Command driveFacingAngleCommand(DoubleSupplier vX, DoubleSupplier vY, Supplier<Rotation2d> angSupplier){
+        return applyRequest(() -> drive
+                .withVelocityX(vX.getAsDouble())
+                .withVelocityY(vY.getAsDouble())
+                .withRotationalRate(HEADING_CONTROLLER.calculate(
+                    getState().Pose.getRotation().getRadians(), angSupplier.get().getRadians())));
     }
 
     private void startSimThread() {
@@ -161,6 +243,27 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         });
         m_simNotifier.startPeriodic(kSimLoopPeriod);
     }
+
+    private boolean withinRange(){
+        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 
+            FieldConstants.targetPoseBlue : FieldConstants.targetPoseRed;
+        Pose2d robotPose = getState().Pose;
+
+        Translation2d fieldRobotSpeeds = new Translation2d(
+            getState().speeds.vxMetersPerSecond, 
+            getState().speeds.vyMetersPerSecond);
+        
+        /*Predict where target will be based on our current speeds */
+        Translation2d virtualTarget = target.getTranslation()
+            .plus(
+                fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
+                .rotateBy(Rotation2d.fromDegrees(180.0)
+                ));
+
+        return virtualTarget.getDistance(robotPose.getTranslation()) <= rangeTheshold;
+    }
+
+    public final Trigger withinRange = new Trigger(() -> withinRange());
 
     @Override
     public void periodic() {
