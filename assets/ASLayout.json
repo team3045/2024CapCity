@@ -1,0 +1,118 @@
+{
+  "hubs": [
+    {
+      "x": 170,
+      "y": 69,
+      "width": 1100,
+      "height": 650,
+      "state": {
+        "sidebar": {
+          "width": 300,
+          "expanded": [
+            "/DrivePose",
+            "/SmartDashboard",
+            "/SmartDashboard/VISION",
+            "/SmartDashboard/VISION/CAMERAS",
+            "/SmartDashboard/VISION/CAMERAS/left",
+            "/SmartDashboard/VISION/CAMERAS/right"
+          ]
+        },
+        "tabs": {
+          "selected": 2,
+          "tabs": [
+            {
+              "type": 0,
+              "path": "../docs/INDEX.md"
+            },
+            {
+              "type": 1,
+              "legendHeight": 0.3,
+              "legends": {
+                "left": {
+                  "lockedRange": null,
+                  "unitConversion": {
+                    "type": null,
+                    "factor": 1
+                  },
+                  "fields": []
+                },
+                "discrete": {
+                  "fields": []
+                },
+                "right": {
+                  "lockedRange": null,
+                  "unitConversion": {
+                    "type": null,
+                    "factor": 1
+                  },
+                  "fields": []
+                }
+              },
+              "title": "Line Graph"
+            },
+            {
+              "type": 6,
+              "uuid": "f0zmwdw798yf5a8okxfnj4rgnlpzbzqk",
+              "fields": [],
+              "listFields": [
+                [
+                  {
+                    "type": "Component (Robot)",
+                    "key": "NT:/Positioner/Arm Pose3d",
+                    "sourceTypeIndex": 1,
+                    "sourceType": "Pose3d"
+                  }
+                ],
+                [
+                  {
+                    "type": "Robot",
+                    "key": "NT:/DrivePose/Drive Pose2d",
+                    "sourceTypeIndex": 1,
+                    "sourceType": "Pose2d"
+                  },
+                  {
+                    "type": "Green Ghost",
+                    "key": "NT:/SmartDashboard/VISION/CAMERAS/left/VisionPose",
+                    "sourceTypeIndex": 0,
+                    "sourceType": 5
+                  },
+                  {
+                    "type": "Yellow Ghost",
+                    "key": "NT:/SmartDashboard/VISION/CAMERAS/right/VisionPose",
+                    "sourceTypeIndex": 0,
+                    "sourceType": 5
+                  }
+                ]
+              ],
+              "options": {
+                "field": "2024 Field",
+                "alliance": "blue",
+                "robot": "CapCity",
+                "unitDistance": "meters",
+                "unitRotation": "radians"
+              },
+              "configHidden": false,
+              "visualizer": {
+                "cameraIndex": -8,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  -9.769259244062383,
+                  1.574799999999999,
+                  -0.3071351152909609
+                ],
+                "cameraTarget": [
+                  0,
+                  0.5,
+                  0
+                ]
+              },
+              "title": "3D Field"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "satellites": [],
+  "version": "3.2.1"
+}

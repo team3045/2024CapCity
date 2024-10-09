@@ -26,10 +26,27 @@
       "/SmartDashboard/Module 0": "Mechanism2d",
       "/SmartDashboard/Module 1": "Mechanism2d",
       "/SmartDashboard/Module 2": "Mechanism2d",
-      "/SmartDashboard/Module 3": "Mechanism2d"
+      "/SmartDashboard/Module 3": "Mechanism2d",
+      "/SmartDashboard/VisionSystemSim-ApriltagVision/Sim Field": "Field2d"
     },
     "windows": {
       "/Pose": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/ArmSubsystem/Mechanism": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/VisionSystemSim-ApriltagVision/Sim Field": {
         "bottom": 1476,
         "height": 8.210550308227539,
         "left": 150,
@@ -47,24 +64,30 @@
       "open": false
     },
     "transitory": {
-      "Drive": {
-        "open": true
-      },
       "Pose": {
         "double[]##v_/Pose/robotPose": {
           "open": true
-        },
-        "open": true
+        }
       },
       "SmartDashboard": {
-        "ArmSubsystem": {
-          "open": true
-        },
-        "ShooterSubsystem": {
-          "LeftShooter": {
-            "open": true
+        "VISION": {
+          "CAMERAS": {
+            "left": {
+              "open": true
+            },
+            "open": true,
+            "right": {
+              "open": true
+            }
           },
           "open": true
+        },
+        "VisionSystemSim-ApriltagVision": {
+          "Sim Field": {
+            "double[]##v_/SmartDashboard/VisionSystemSim-ApriltagVision/Sim Field/cameras": {
+              "open": true
+            }
+          }
         },
         "open": true
       }
@@ -75,7 +98,8 @@
       "Subscribers": {
         "open": true
       }
-    }
+    },
+    "visible": true
   },
   "Plot": {
     "Plot <0>": {

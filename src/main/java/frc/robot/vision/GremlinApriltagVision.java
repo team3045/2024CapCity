@@ -4,15 +4,19 @@
 
 package frc.robot.vision;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import dev.doglog.DogLog;
+import com.ctre.phoenix6.Utils;
 
 import static frc.robot.constants.FieldConstants.aprilTags;
 import static frc.robot.constants.VisionConstants.CAMERA_LOG_PATH;
@@ -22,28 +26,35 @@ import static frc.robot.constants.VisionConstants.THETA_STDDEV_MODEL;
 import static frc.robot.constants.VisionConstants.XY_STDDEV_MODEL;
 import static frc.robot.constants.VisionConstants.FIELD_BORDER_MARGIN;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commons.GeomUtil;
 import frc.robot.commons.TimestampedVisionUpdate;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.SingleTagAdjusters;
+import frc.robot.constants.VisionConstants;
 import frc.robot.commons.GremlinLogger;
 
 public class GremlinApriltagVision extends SubsystemBase {
   private BreadPhotonCamera[] cameras;
   private List<TimestampedVisionUpdate> visionUpdates;
 
+  private PhotonCameraSim[] simCameras;
+  private VisionSystemSim visionSystemSim;
+  private SimCameraProperties[] simCameraProperties;
+
   //Will be the function in drivetrain that adds vision estimate to pose estimation
   private Consumer<List<TimestampedVisionUpdate>> visionConsumer = (visionUpdates) -> {};
   //Will be the function in driveTrain that supplies current pose estimate
   private Supplier<Pose2d> poseSupplier = () -> new Pose2d(); 
-
 
   /** Creates a new GremlinApriltagVision. */
   public GremlinApriltagVision(
@@ -54,6 +65,10 @@ public class GremlinApriltagVision extends SubsystemBase {
     this.cameras = cameras;
     this.poseSupplier = poseSupplier;
     this.visionConsumer = visionConsumer;
+
+    if(Utils.isSimulation()){
+      configSim();
+    }
   }
   
   @Override
@@ -80,10 +95,10 @@ public class GremlinApriltagVision extends SubsystemBase {
       double singleTagAdjustment = 1.0;
       String logPath = CAMERA_LOG_PATH + cameras[i].getName();
 
-      DogLog.log(logPath + "/Hastargets", unprocessedResult.hasTargets());
-      DogLog.log(logPath + "/LatencyMS", unprocessedResult.getLatencyMillis());
-      DogLog.log(logPath + "/Timestamp", timestamp);
-
+      GremlinLogger.logSD(logPath + "/Hastargets", unprocessedResult.hasTargets());
+      GremlinLogger.logSD(logPath + "/LatencyMS", unprocessedResult.getLatencyMillis());
+      GremlinLogger.logSD(logPath + "/Timestamp", timestamp);
+      
 
       // Continue if the camera doesn't have any targets
       if (!unprocessedResult.hasTargets()) {
@@ -105,7 +120,7 @@ public class GremlinApriltagVision extends SubsystemBase {
           //TODO: add logs of each tag here
         }
 
-        DogLog.log(logPath + "/CameraPose (MultiTag)", cameraPose);
+        GremlinLogger.logSD(logPath + "/CameraPose (MultiTag)", cameraPose);
       } else {
         PhotonTrackedTarget target = unprocessedResult.getBestTarget();
 
@@ -139,7 +154,7 @@ public class GremlinApriltagVision extends SubsystemBase {
         tagPose3ds.add(tagPose);
         singleTagAdjustment = SingleTagAdjusters.getAdjustmentForTag(target.getFiducialId());
 
-        DogLog.log(logPath + "/CameraPose (SingleTag)", cameraPose);
+        GremlinLogger.logSD(logPath + "/CameraPose (SingleTag)", cameraPose);
       }
 
       if(cameraPose == null || calculatedRobotPose == null) continue;
@@ -179,16 +194,48 @@ public class GremlinApriltagVision extends SubsystemBase {
         stdDevs.times(singleTagAdjustment);
       }
 
-      visionUpdates.add(
+        visionUpdates.add(
         new TimestampedVisionUpdate(
           calculatedRobotPose, 
           timestamp, 
           stdDevs));
 
 
-      DogLog.log(logPath+ "/VisionPose", calculatedRobotPose);
-      DogLog.log(logPath + "/TagsUsed", tagPose3ds.size());
+      GremlinLogger.logSD(logPath+ "/VisionPose", calculatedRobotPose);
+      GremlinLogger.logSD(logPath + "/TagsUsed", tagPose3ds.size());
       GremlinLogger.logStdDevs(logPath, stdDevs);
     }
+  }
+
+  public void configSim(){
+    visionSystemSim = new VisionSystemSim("ApriltagVision");
+    AprilTagFieldLayout layout;
+    try {
+      layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile);
+      visionSystemSim.addAprilTags(layout);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    simCameras = new PhotonCameraSim[cameras.length];
+    simCameraProperties = new SimCameraProperties[cameras.length];
+
+    for(int i =0; i < cameras.length; i++){
+      simCameraProperties[i] = VisionConstants.getOV2311();
+      simCameras[i] = new PhotonCameraSim(cameras[i].getPhotonCamera(),simCameraProperties[i]);
+      simCameras[i].enableDrawWireframe(false);
+      simCameras[i].enableRawStream(false); //(http://localhost:1181 / 1182)
+      simCameras[i].enableProcessedStream(false);
+      visionSystemSim.addCamera(simCameras[i], GeomUtil.pose3dToTransform3d(cameras[i].getCameraPose()));
+    }
+  }
+
+  @Override
+  public void simulationPeriodic(){
+    visionSystemSim.update(poseSupplier.get());
+    Field2d debugField = visionSystemSim.getDebugField();
+    debugField.getObject("EstimatedRobot").setPose(poseSupplier.get());
+    debugField.getRobotObject().setPose(poseSupplier.get());
+
+    processVisionUpdates();
   }
 }

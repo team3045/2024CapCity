@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.DoubleSupplier;
+import java.util.List;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -23,6 +24,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -33,6 +37,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.ShooterConstants;
+import frc.robot.commons.TimestampedVisionUpdate;
 import frc.robot.generated.TunerConstants;
 
 /**
@@ -105,21 +110,26 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     /* Change this to the sysid routine you want to test */
     private final SysIdRoutine RoutineToApply = SysIdRoutineTranslation;
 
+    /*Publishing */
+    private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    private final NetworkTable armTable = inst.getTable("DrivePose");
+    private final StructPublisher<Pose2d> pose2dPublisher = armTable.getStructTopic("Drive Pose2d", Pose2d.struct).publish();
+
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency, SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
-        HEADING_CONTROLLER.enableContinuousInput(-Math.PI/2, Math.PI/2);
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
+            seedFieldRelative(new Pose2d(0,0,Rotation2d.fromDegrees(0)));
         }
     }
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
         super(driveTrainConstants, modules);
-        HEADING_CONTROLLER.enableContinuousInput(-Math.PI/2, Math.PI/2);
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
+            seedFieldRelative(new Pose2d(0,0,Rotation2d.fromDegrees(0)));
         }
     }
 
@@ -229,6 +239,12 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                     getState().Pose.getRotation().getRadians(), angSupplier.get().getRadians())));
     }
 
+    public void addVisionMeasurements(List<TimestampedVisionUpdate> updates){
+        for(int i = 0; i < updates.size(); i++){
+            addVisionMeasurement(updates.get(i).pose(), updates.get(i).timestamp(), updates.get(i).stdDevs());
+        }
+    }
+
     private void startSimThread() {
         m_lastSimTime = Utils.getCurrentTimeSeconds();
 
@@ -280,5 +296,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 hasAppliedOperatorPerspective = true;
             });
         }
+
+        pose2dPublisher.set(getState().Pose);
     }
 }

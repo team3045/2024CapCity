@@ -34,6 +34,9 @@ public class ArmConstants {
     public static final double armCOM = Units.inchesToMeters(15.044); //Close enough to directly below pivot for our purposes
     public static final double armMass = Units.lbsToKilograms(17.044);
     public static final double mech2dOffset = 90; //degrees
+    public static final double simPositionX = -0.051;
+    public static final double simPositionY = 0;
+    public static final double simPositionZ = 0.6096;
    
     //ANGLES
     public static final double minAngle = 18.26; //degrees
@@ -54,6 +57,9 @@ public class ArmConstants {
     public static final double canvasHeight = Units.inchesToMeters(32);
     public static final double rootX = canvasWidth / 2;
     public static final double rootY = Units.inchesToMeters(25.752224);
+    public static final double simX = 0;
+    public static final double simY = 0;
+    public static final double simZ = 0;
 
     //CONFIGURATION
 
