@@ -44,8 +44,8 @@ public class RobotContainer {
   private void configureBindings() {
     drivetrain.setDefaultCommand(
       drivetrain.getDriveCommand(
-        () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
-        ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed,
+        () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: REVERSE X AND Y FOR REAL BOT BUT SIM JOYSTICKLS ARE BEING WEIRD
+        ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
         () -> joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate)
     );
 
@@ -78,8 +78,8 @@ public class RobotContainer {
       shooter.setRevving()
       .alongWith(
         drivetrain.aimAtSpeakerMoving(
-          () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
-          ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed))
+          () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: SEE COMMENT ABOVE ON OTHER DRIVE COMMAND
+          ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
       .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
     joystick.R1().onTrue(shooter.coastShootersAndIdle());

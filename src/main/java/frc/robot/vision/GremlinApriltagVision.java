@@ -194,7 +194,7 @@ public class GremlinApriltagVision extends SubsystemBase {
         stdDevs.times(singleTagAdjustment);
       }
 
-      visionUpdates.add(
+        visionUpdates.add(
         new TimestampedVisionUpdate(
           calculatedRobotPose, 
           timestamp, 

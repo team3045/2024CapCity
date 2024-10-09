@@ -27,9 +27,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -120,19 +117,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency, SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
-        HEADING_CONTROLLER.enableContinuousInput(-Math.PI/2, Math.PI/2);
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
+            seedFieldRelative(new Pose2d(0,0,Rotation2d.fromDegrees(0)));
         }
     }
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
         super(driveTrainConstants, modules);
-        HEADING_CONTROLLER.enableContinuousInput(-Math.PI/2, Math.PI/2);
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
+            seedFieldRelative(new Pose2d(0,0,Rotation2d.fromDegrees(0)));
         }
     }
 
