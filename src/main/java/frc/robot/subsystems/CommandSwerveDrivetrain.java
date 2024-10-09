@@ -24,6 +24,9 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -105,6 +108,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     /* Change this to the sysid routine you want to test */
     private final SysIdRoutine RoutineToApply = SysIdRoutineTranslation;
+
+    /*Publishing */
+    private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    private final NetworkTable armTable = inst.getTable("DrivePose");
+    private final StructPublisher<Pose2d> pose2dPublisher = armTable.getStructTopic("Drive Pose2d", Pose2d.struct).publish();
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency, SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
@@ -282,6 +290,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             });
         }
 
-        System.out.println("Pose  3d: " + new Pose3d(getState().Pose).getZ());
+        pose2dPublisher.set(new Pose2d());
     }
 }

@@ -245,11 +245,9 @@ public class ArmSubsystem extends SubsystemBase {
 
 
     pose3dPublisher.set(new Pose3d(
-      new Translation3d(0,0,0),
-      new Rotation3d(0,0,0)
+      new Translation3d(-0.051,0,0.6096),
+      new Rotation3d(0,-pitch,0)
     ));
-
-    
   }
 
   /**
