@@ -50,7 +50,6 @@ public class GremlinApriltagVision extends SubsystemBase {
   private PhotonCameraSim[] simCameras;
   private VisionSystemSim visionSystemSim;
   private SimCameraProperties[] simCameraProperties;
-  private PhotonPipelineResult results;
 
   //Will be the function in drivetrain that adds vision estimate to pose estimation
   private Consumer<List<TimestampedVisionUpdate>> visionConsumer = (visionUpdates) -> {};

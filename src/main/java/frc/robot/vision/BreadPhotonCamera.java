@@ -7,7 +7,6 @@ package frc.robot.vision;
 import java.util.Optional;
 import java.util.Set;
 
-import org.opencv.photo.Photo;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonVersion;
 import org.photonvision.common.hardware.VisionLEDMode;
