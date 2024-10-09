@@ -2,37 +2,36 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.Subsystems;
+package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.DistanceSensorReader;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.ShooterConstants;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
-  private TalonFX intakeMotor = new TalonFX(IntakeConstants.intakeMotorId, IntakeConstants.canbus);
-  private TalonFX feedMotor = new TalonFX(IntakeConstants.feedMotorId, ShooterConstants.canbus);
-  private DistanceSensorReader rangeSensorReader = new DistanceSensorReader();
+  private TalonFX intakeMotorLeft = new TalonFX(IntakeConstants.leftID, IntakeConstants.canbus);
+  private TalonFX intakeMotorRight = new TalonFX(IntakeConstants.rightID, IntakeConstants.canbus);
 
-  /*Run on seperate threat to avoid loop overruns */
-  private Notifier rangeSensorNotifier = new Notifier(rangeSensorReader);
+  private enum IntakeState{
+    INTAKING,
+    IDLE
+  }
+
+  private IntakeState state;
 
   /** Creates a new Intake. */
   public Intake() {
-    rangeSensorReader.run();
-    rangeSensorNotifier.setName("Range Sensors");
-    rangeSensorNotifier.startPeriodic(0.01); //Run it at a higher freq to hopefully help intakes
-
-    feedMotor.getConfigurator().apply(
+    intakeMotorLeft.getConfigurator().apply(
       new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
-    intakeMotor.getConfigurator().apply(
+    intakeMotorRight.getConfigurator().apply(
       new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+    
+    state = IntakeState.IDLE;
   }
 
   @Override
@@ -41,49 +40,22 @@ public class Intake extends SubsystemBase {
   }
 
   public Command runIntakeMotor(){
-    return this.run(() -> intakeMotor.set(IntakeConstants.intakeSpeed));
-  }
-
-  public Command runFeedMotor(){
-    return this.run(() -> feedMotor.set(IntakeConstants.feedSpeed));
-  }
-
-  public Command runBoth(){
     return this.run(() -> {
-      feedMotor.set(IntakeConstants.feedSpeed);
-      intakeMotor.set(IntakeConstants.intakeSpeed);
+      intakeMotorLeft.set(IntakeConstants.intakeSpeed);
+      intakeMotorRight.set(IntakeConstants.intakeSpeed);
+      state = IntakeState.INTAKING;
     });
   }
 
-  public Command stopIntakeMotor(){
-    return this.run(() -> intakeMotor.stopMotor());
-  }
 
-  public Command stopFeedMotor(){
-    return this.run(() -> feedMotor.stopMotor());
-  }
-
-  public Command stopBoth(){
+  public Command stop(){
     return this.run(() -> {
-      feedMotor.stopMotor();
-      intakeMotor.stopMotor();
+      intakeMotorLeft.stopMotor();
+      intakeMotorRight.stopMotor();
+      state = IntakeState.IDLE;
     });
   }
 
-  public void stop(){
-    feedMotor.stopMotor();
-    intakeMotor.stopMotor();
-  }
-
-  public void stopFeedRunnable(){
-    feedMotor.stopMotor();
-  }
-
-  public Command runBack(){
-    return this.run(() -> feedMotor.set(-0.1));
-  }
-
-  public boolean noteDetected(){
-    return rangeSensorReader.getRange() < IntakeConstants.rangeSensorThreshold;
-  }
+  //TRIGGERS
+  public final Trigger isIntaking = new Trigger(() -> state == IntakeState.INTAKING);
 }
