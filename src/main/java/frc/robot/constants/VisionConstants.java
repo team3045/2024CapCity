@@ -67,13 +67,13 @@ public class VisionConstants {
           Units.inchesToMeters(10.440), 
           Units.inchesToMeters(-10.453), 
           Units.inchesToMeters(7.904020)),
-        new Rotation3d(0, Units.degreesToRadians(30), Units.degreesToRadians(-15))),
+        new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-15))),
       new Pose3d( //right
         new Translation3d(
           Units.inchesToMeters(10.440), 
           Units.inchesToMeters(10.453), 
           Units.inchesToMeters(7.904020)),
-        new Rotation3d(0, Units.degreesToRadians(30), Units.degreesToRadians(15))),
+        new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(15))),
     };
 
     public static final BreadPhotonCamera[] cameras = {

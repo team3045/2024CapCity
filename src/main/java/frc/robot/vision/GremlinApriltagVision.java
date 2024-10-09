@@ -223,7 +223,9 @@ public class GremlinApriltagVision extends SubsystemBase {
     for(int i =0; i < cameras.length; i++){
       simCameraProperties[i] = VisionConstants.getOV2311();
       simCameras[i] = new PhotonCameraSim(cameras[i].getPhotonCamera(),simCameraProperties[i]);
-      simCameras[i].enableDrawWireframe(true);
+      simCameras[i].enableDrawWireframe(false);
+      simCameras[i].enableRawStream(false); //(http://localhost:1181 / 1182)
+      simCameras[i].enableProcessedStream(false);
       visionSystemSim.addCamera(simCameras[i], GeomUtil.pose3dToTransform3d(cameras[i].getCameraPose()));
     }
   }
@@ -234,13 +236,6 @@ public class GremlinApriltagVision extends SubsystemBase {
     Field2d debugField = visionSystemSim.getDebugField();
     debugField.getObject("EstimatedRobot").setPose(poseSupplier.get());
     debugField.getRobotObject().setPose(poseSupplier.get());
-
-    results = cameras[0].getPhotonCamera().getLatestResult();
-    System.out.println(results.getTargets().size());
-
-    if(results.hasTargets()){
-      System.out.println("Has Targets");
-    }
 
     processVisionUpdates();
   }
