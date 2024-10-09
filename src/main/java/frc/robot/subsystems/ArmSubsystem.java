@@ -240,12 +240,8 @@ public class ArmSubsystem extends SubsystemBase {
 
     double pitch = getPositionRadians();
 
-    double y = 0.6096*Math.sin(pitch);
-    double z = 0.6096 - 0.6096*Math.cos(pitch);
-
-
     pose3dPublisher.set(new Pose3d(
-      new Translation3d(-0.051,0,0.6096),
+      new Translation3d(simPositionX,simPositionY,simPositionZ),
       new Rotation3d(0,-pitch,0)
     ));
   }
