@@ -15,16 +15,15 @@ import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.ShooterSubsytem;
 import frc.robot.vision.GremlinApriltagVision;
 
 public class RobotContainer {
-  private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
-  private double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
-
   /* Setting up bindings for necessary control of the swerve drive platform */
   private final CommandPS4Controller joystick = new CommandPS4Controller(0); // My joystick
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
   public final ArmSubsystem arm = new ArmSubsystem();
+  public final ShooterSubsytem shooter = new ShooterSubsytem();
 
   /*Vision System */
   public final GremlinApriltagVision apriltagVision = new GremlinApriltagVision(
@@ -32,10 +31,6 @@ public class RobotContainer {
     () -> drivetrain.getState().Pose, 
     updates -> drivetrain.addVisionMeasurements(updates));
 
-  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
-                                                               // driving in open loop
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -44,15 +39,15 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private Command runAuto = drivetrain.getAutoPath("Tests");
 
-  private final Telemetry logger = new Telemetry(MaxSpeed);
+  private final Telemetry logger = new Telemetry(CommandSwerveDrivetrain.MaxSpeed);
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand( // Drivetrain will execute this command periodically
-        drivetrain.applyRequest(() -> drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with
-                                                                                           // negative Y (forward)
-            .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-            .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-        ).ignoringDisable(true));
+    drivetrain.setDefaultCommand(
+      drivetrain.getDriveCommand(
+        () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
+        ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed,
+        () -> joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate)
+    );
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
     joystick.circle().whileTrue(drivetrain
@@ -75,8 +70,32 @@ public class RobotContainer {
     joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-    joystick.L1().whileTrue(arm.increaseAngle().repeatedly());
-    joystick.R1().whileTrue(arm.decreaseAngle().repeatedly());
+    /*Bindings to set State of Shooter*/
+
+    //TODO: Should set the arm to start aiming / tracking target, should have drivetrain start aiming towards target
+    //Should have shooters rev, Essentially sets everything up for the later trigger
+    joystick.triangle().toggleOnTrue(
+      shooter.setRevving()
+      .alongWith(
+        drivetrain.aimAtSpeakerMoving(
+          () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
+          ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed))
+      .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
+
+    joystick.R1().onTrue(shooter.coastShootersAndIdle());
+
+    /*Triggers to deal with State of Shooter */
+    shooter.isRevving 
+      .and(shooter.hasNote)
+      .and(shooter.atSpeed)
+      .and(arm.atTarget)
+      .and(drivetrain.withinRange) //TODO: add a check that a main "shooter" camera sees the target
+      .whileTrue(shooter.setShooting().andThen(shooter.feedNote())); //TODO: add a cancel so we go back to normal rotation maybe
+    
+      //Once the note is gone we're done shooting so we go idle and coast the shooters
+    shooter.isShooting.and(shooter.hasNote.negate()).onTrue(
+      shooter.coastShootersAndIdle()
+      .alongWith(arm.goToMin()));  
   }
 
   public RobotContainer() {
