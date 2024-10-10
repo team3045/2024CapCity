@@ -9,11 +9,13 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsytem;
 
 public class RobotContainer {
@@ -22,6 +24,7 @@ public class RobotContainer {
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
   public final ArmSubsystem arm = new ArmSubsystem();
   public final ShooterSubsytem shooter = new ShooterSubsytem();
+  public final IntakeSubsystem intake = new IntakeSubsystem();
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
@@ -38,7 +41,8 @@ public class RobotContainer {
       drivetrain.getDriveCommand(
         () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
         ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed,
-        () -> joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate)
+        () -> joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate
+      )
     );
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -47,6 +51,9 @@ public class RobotContainer {
 
     // reset the field-centric heading on left bumper press
     joystick.L2().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
+
+    //joystick.R2().whileTrue(Commands.print("\033[31mRunning Intake\033[39m"));
+    joystick.R2().whileTrue(intake.runIntakeMotor());
 
     joystick.pov(0).whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(0.5).withVelocityY(0)));
     joystick.pov(180).whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(-0.5).withVelocityY(0)));
