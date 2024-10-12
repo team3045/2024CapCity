@@ -109,5 +109,11 @@ public class RobotContainer {
 
     return arm.increaseAngle().repeatedly().withTimeout(5)
       .andThen(arm.decreaseAngle().repeatedly().withTimeout(5));
+    
+    
+    /*return intake.runIntakeMotor().repeatedly().withTimeout(5)
+      .andThen(intake.stop());
+    */
+     
   }
 }
