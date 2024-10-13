@@ -9,14 +9,15 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsytem;
+import frc.robot.vision.GremlinApriltagVision;
 
 public class RobotContainer {
   /* Setting up bindings for necessary control of the swerve drive platform */
@@ -25,6 +26,12 @@ public class RobotContainer {
   public final ArmSubsystem arm = new ArmSubsystem();
   public final ShooterSubsytem shooter = new ShooterSubsytem();
   public final IntakeSubsystem intake = new IntakeSubsystem();
+
+  /*Vision System */
+  public final GremlinApriltagVision apriltagVision = new GremlinApriltagVision(
+    VisionConstants.cameras, 
+    () -> drivetrain.getState().Pose, 
+    updates -> drivetrain.addVisionMeasurements(updates));
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
@@ -39,10 +46,9 @@ public class RobotContainer {
   private void configureBindings() {
     drivetrain.setDefaultCommand(
       drivetrain.getDriveCommand(
-        () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
-        ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed,
-        () -> joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate
-      )
+        () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: REVERSE X AND Y FOR REAL BOT BUT SIM JOYSTICKLS ARE BEING WEIRD
+        ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
+        () -> joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate)
     );
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -77,8 +83,8 @@ public class RobotContainer {
       shooter.setRevving()
       .alongWith(
         drivetrain.aimAtSpeakerMoving(
-          () -> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
-          ()-> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed))
+          () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: SEE COMMENT ABOVE ON OTHER DRIVE COMMAND
+          ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
       .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
     joystick.R1().onTrue(shooter.coastShootersAndIdle());
