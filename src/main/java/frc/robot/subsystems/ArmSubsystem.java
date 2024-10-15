@@ -15,10 +15,9 @@ import static frc.robot.constants.ArmConstants.*;
 
 import java.util.function.DoubleSupplier;
 
-import javax.swing.text.Position;
-
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -28,7 +27,6 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -162,7 +160,7 @@ public class ArmSubsystem extends SubsystemBase {
     leftMotor.clearStickyFault_RemoteSensorDataInvalid();
     rightMotor.clearStickyFault_RemoteSensorDataInvalid();
 
-    cancoder.setPosition(cancoder.getAbsolutePosition().getValueAsDouble());
+    cancoder.setPosition(Units.degreesToRotations(minAngle) * sensorToMechanismRatio);
   }
 
   //Ideally don't use, add periodic functions in RobotContainer
@@ -272,6 +270,8 @@ public class ArmSubsystem extends SubsystemBase {
     setpoint = GremlinUtil.clampWithLogs(maxAngle, minAngle, targetAngle);
 
     double gravFeedforward = kG * Math.cos(getPositionRadians());
+    System.out.println("Grav feedforward: " + gravFeedforward);
+    System.out.println("Current cos: " + Math.cos(getPositionRadians()));
 
     MotionMagicVoltage request = new MotionMagicVoltage(Units.degreesToRotations(setpoint))
       .withEnableFOC(false).withSlot(0).withUpdateFreqHz(50)
@@ -287,7 +287,7 @@ public class ArmSubsystem extends SubsystemBase {
    * @return A command controlling the arm to travel to the specified angle
    */
   public Command goToAngle(DoubleSupplier angle){
-    return this.run(() -> {
+    return this.runOnce(() -> {
       setTarget(angle.getAsDouble());
       System.out.println(angle.getAsDouble());
     });
@@ -309,6 +309,10 @@ public class ArmSubsystem extends SubsystemBase {
 
   public Command goToMin(){
     return goToAngle(()-> minAngle);
+  }
+
+  public Command goToMax(){
+    return goToAngle(() -> maxAngle);
   }
 
   /**
@@ -339,7 +343,7 @@ public class ArmSubsystem extends SubsystemBase {
    * @return A command to increase the arm angle by 5 degree
    */
   public Command increaseAngle(){
-    return goToAngle(() -> getPositionDegrees() + 5); 
+    return goToAngle(() -> getPositionDegrees() + 50); 
   }
 
   /**
@@ -347,7 +351,7 @@ public class ArmSubsystem extends SubsystemBase {
    * @return A command to decrease the arm angle by 5 degree
    */
   public Command decreaseAngle(){
-    return goToAngle(() -> getPositionDegrees() - 5);
+    return goToAngle(() -> getPositionDegrees() - 10);
   }
 
   public Command setAngleFromDistance(DoubleSupplier distance){
@@ -356,6 +360,11 @@ public class ArmSubsystem extends SubsystemBase {
 
   public double getAngleFromDistance(DoubleSupplier distance){
     return ArmAngles.map.get(distance.getAsDouble());
+  }
+
+  public void setCoast(){
+    leftMotor.setControl(new CoastOut());
+    rightMotor.setControl(new CoastOut());
   }
 
   /**

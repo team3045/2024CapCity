@@ -70,6 +70,8 @@ public class RobotContainer {
     // joystick.share().and(joystick.square()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
     // joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     // joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+
+    /* Bindings for arm characterization */
     // joystick.share().and(joystick.triangle()).onTrue(arm.sysIdDynamicForward());
     // joystick.share().and(joystick.square()).onTrue(arm.sysIdDynamicReverse());
     // joystick.options().and(joystick.triangle()).onTrue(arm.sysIdQuasistaticForward());
@@ -88,8 +90,8 @@ public class RobotContainer {
     //   .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
     // joystick.R1().onTrue(shooter.coastShootersAndIdle());
-    joystick.L1().onTrue(arm.increaseAngle());
-    joystick.R1().onTrue(arm.decreaseAngle());
+    joystick.L1().onTrue(arm.goToMax());
+    joystick.R1().onTrue(arm.goToMin());
 
     /*Triggers to deal with State of Shooter */
     shooter.isRevving 

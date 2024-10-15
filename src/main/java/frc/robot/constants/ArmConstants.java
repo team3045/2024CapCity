@@ -80,18 +80,18 @@ public class ArmConstants {
     public static final InvertedValue rightInverted = InvertedValue.CounterClockwise_Positive;
 
     //Velocity and Acceleration
-    public static final double targetAcceleration = 1; //Rot per Sec^2, This is mostly going to be your max workable acceleration
+    public static final double targetAcceleration = 3; //Rot per Sec^2, This is mostly going to be your max workable acceleration
     public static final double targetVelocity = 1; //Rot per Sec, This is mostly going to be max workable Velocity
 
     //Control Loop Gains
     public static final GravityTypeValue gravity = GravityTypeValue.Elevator_Static; 
-    public static final double kP = 0; 
+    public static final double kP = 500; 
     public static final double kI = 0; 
-    public static final double kD = 0; 
-    public static final double kG = 0.10291; //voltage required to overcome gravity
-    public static final double kV = 4.1241; //voltage based on requested velocity
+    public static final double kD = 0.1; 
+    public static final double kG = 0.701825; //voltage required to overcome gravity
+    public static final double kV = 1.593; //voltage based on requested velocity
     public static final double kA = 0.78869; //voltage based on requested acceleration
-    public static final double kS = 0.49658; //Voltage to overcome friction
+    public static final double kS = 0.29658; //Voltage to overcome friction
 
     //Cancoder Settings
     public static final double angleOffset = -0.177; //rotations, divide b/c arm to cancocer
