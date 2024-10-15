@@ -9,9 +9,7 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
@@ -81,17 +79,15 @@ public class RobotContainer {
 
     //TODO: Should set the arm to start aiming / tracking target, should have drivetrain start aiming towards target
     //Should have shooters rev, Essentially sets everything up for the later trigger
-    // joystick.triangle().toggleOnTrue(
-    //   shooter.setRevving()
-    //   .alongWith(
-    //     drivetrain.aimAtSpeakerMoving(
-    //       () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: SEE COMMENT ABOVE ON OTHER DRIVE COMMAND
-    //       ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
-    //   .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
+    joystick.triangle().toggleOnTrue(
+      shooter.setRevving()
+      .alongWith(
+        drivetrain.aimAtSpeakerMoving(
+          () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: SEE COMMENT ABOVE ON OTHER DRIVE COMMAND
+          ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
+      .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
-    // joystick.R1().onTrue(shooter.coastShootersAndIdle());
-    joystick.L1().onTrue(arm.goToMax());
-    joystick.R1().onTrue(arm.goToMin());
+    joystick.R1().onTrue(shooter.coastShootersAndIdle());
 
     /*Triggers to deal with State of Shooter */
     shooter.isRevving 

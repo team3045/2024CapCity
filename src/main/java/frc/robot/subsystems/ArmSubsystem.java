@@ -5,8 +5,6 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degree;
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
@@ -135,8 +133,7 @@ public class ArmSubsystem extends SubsystemBase {
     mechanism = new Mechanism2d(canvasWidth, canvasHeight);
     mechanismRoot = mechanism.getRoot("pivot", rootX, rootY);
     mechanismLigament2d = mechanismRoot.append(
-      new MechanismLigament2d("armLength", armCOM, -minAngle + mech2dOffset) //IRL our 0 degrees is hanging straight down, 
-                                                                          //but in the mechanism 2d its at a right angle
+      new MechanismLigament2d("armLength", armCOM, -minAngle + mech2dOffset) //offset so its to the left, just personal preference
     );
 
     if(Utils.isSimulation()){
@@ -170,7 +167,6 @@ public class ArmSubsystem extends SubsystemBase {
     logPeriodic();
   }
 
-  //TODO: Change to differential
   /**
    * @return returns current position of arm in degrees
    */
@@ -259,7 +255,6 @@ public class ArmSubsystem extends SubsystemBase {
     zeroed = true;
   }
 
-
   /**
    * Internal Method to set the target position of the arm. 
    * Should only be acessed externally through command factories
@@ -343,7 +338,7 @@ public class ArmSubsystem extends SubsystemBase {
    * @return A command to increase the arm angle by 5 degree
    */
   public Command increaseAngle(){
-    return goToAngle(() -> getPositionDegrees() + 50); 
+    return goToAngle(() -> getPositionDegrees() + 5); 
   }
 
   /**
@@ -351,7 +346,7 @@ public class ArmSubsystem extends SubsystemBase {
    * @return A command to decrease the arm angle by 5 degree
    */
   public Command decreaseAngle(){
-    return goToAngle(() -> getPositionDegrees() - 10);
+    return goToAngle(() -> getPositionDegrees() - 5);
   }
 
   public Command setAngleFromDistance(DoubleSupplier distance){
@@ -407,11 +402,14 @@ public class ArmSubsystem extends SubsystemBase {
     displayMechanism();
   }
 
+  //for sysid and characterization / testing
   public void applyVoltage(double voltage){
     leftMotor.setVoltage(voltage);
     rightMotor.setVoltage(voltage);
   }
 
+
+  //SYSID COMMANDS
   public Command sysIdDynamicForward(){
     return armRoutine.dynamic(Direction.kForward)
       .until(() -> getPositionDegrees() >= maxAngle);
