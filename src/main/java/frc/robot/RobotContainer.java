@@ -58,7 +58,7 @@ public class RobotContainer {
     joystick.L2().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
 
     //joystick.R2().whileTrue(Commands.print("\033[31mRunning Intake\033[39m"));
-    joystick.R2().whileTrue(intake.runIntakeMotor());
+    joystick.R2().onTrue(intake.runIntakeMotor()).onFalse(intake.stopIntakeMotor());
 
     joystick.pov(0).whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(0.5).withVelocityY(0)));
     joystick.pov(180).whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(-0.5).withVelocityY(0)));

@@ -75,7 +75,11 @@ public class IntakeSubsystem extends SubsystemBase {
       intakeMotorLeft.set(IntakeConstants.intakeSpeed);
       intakeMotorRight.set(IntakeConstants.intakeSpeed);
       state = IntakeState.INTAKING;
-    }).finallyDo(() -> {
+    });
+  }
+
+  public Command stopIntakeMotor(){
+    return this.run(() -> {
       intakeMotorLeft.stopMotor();
       intakeMotorRight.stopMotor();
       state = IntakeState.IDLE;
@@ -92,15 +96,6 @@ public class IntakeSubsystem extends SubsystemBase {
 
   public void setIdleStateRunnable(){
     state = IntakeState.IDLE;
-  }
-
-
-  public Command stop(){
-    return this.run(() -> {
-      intakeMotorLeft.stopMotor();
-      intakeMotorRight.stopMotor();
-      state = IntakeState.IDLE;
-    });
   }
 
   public void configSim() {
