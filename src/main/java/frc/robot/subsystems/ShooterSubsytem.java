@@ -30,9 +30,12 @@ public class ShooterSubsytem extends SubsystemBase {
   private final TalonFX leftShooter;
   private final TalonFX rightShooter;
   private final TalonFX feedMotor;
-  private final DistanceSensorReader rangeSensor = new DistanceSensorReader();
-  private final Notifier rangeSensorNotifer = new Notifier(rangeSensor);
-  private boolean hasGamePiece;
+  private final DistanceSensorReader frontRangeSensor = new DistanceSensorReader(1);
+  private final DistanceSensorReader backRangeSensor = new DistanceSensorReader(0);
+  private final Notifier frontRangeSensorNotifer = new Notifier(frontRangeSensor);
+  private final Notifier backRangeSensorNotifier = new Notifier(backRangeSensor);
+  private boolean hasGamePieceFront;
+  private boolean hasGamePieceBack;
   private double setpoint;
 
   public enum ShooterState{
@@ -60,15 +63,19 @@ public class ShooterSubsytem extends SubsystemBase {
 
   /** Creates a new ShooterSubsytem. */
   public ShooterSubsytem() {
-    rangeSensor.run();
-    rangeSensorNotifer.setName("Range Sensor");
-    rangeSensorNotifer.startPeriodic(0.02); //runs on seperste thread to prevent loop overun
+    frontRangeSensor.run();
+    frontRangeSensorNotifer.setName("Front Range Sensor");
+    frontRangeSensorNotifer.startPeriodic(0.02); //runs on seperste thread to prevent loop overun
+    backRangeSensor.run();
+    backRangeSensorNotifier.setName("Back Range Sensor");
+    backRangeSensorNotifier.startPeriodic(0.02);
 
     leftShooter = new TalonFX(leftMotorID, canbus);
     rightShooter = new TalonFX(rightMotorID, canbus);
     feedMotor = new TalonFX(feedMotorID, canbus);
 
-    hasGamePiece = rangeSensor.getRange() < hasNoteThreshold; 
+    hasGamePieceFront = frontRangeSensor.getRange() < frontHasNoteThreshold; 
+    hasGamePieceBack = backRangeSensor.getRange() < backHasNoteThreshold;
 
     configMotors();
     
@@ -130,6 +137,15 @@ public class ShooterSubsytem extends SubsystemBase {
     rightShooter.setControl(request);
   }
 
+  public Command runBackSlow(){
+    return this.run(() -> {
+      setShooterSpeed(-10);
+      feedMotor.set(-0.1);
+    });
+  }
+
+  
+
   public Command setRevving(){
     return this.runOnce(() -> {
       mState = ShooterState.REVVING;
@@ -139,9 +155,10 @@ public class ShooterSubsytem extends SubsystemBase {
 
   public Command feedNote(){
     return this.run(() -> {
-      MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(feedingVelocity)
-        .withSlot(0).withUpdateFreqHz(50);
-      feedMotor.setControl(request);
+      // MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(feedingVelocity)
+      //   .withSlot(0).withUpdateFreqHz(50);
+      // feedMotor.setControl(request);
+      feedMotor.set(0.5);
     }).withName("Feeding Note");
   }
 
@@ -156,14 +173,21 @@ public class ShooterSubsytem extends SubsystemBase {
 
   //feedmotor neutral mode should be brake
   public Command stopFeed(){
-    return this.run(() -> {
+    return this.runOnce(() -> {
       feedMotor.stopMotor();
     }).withName("stopping feed");
   }
 
+  public void stopAll(){
+    feedMotor.stopMotor();
+    leftShooter.stopMotor();
+    rightShooter.stopMotor();
+  }
+
   @Override
   public void periodic() {
-    hasGamePiece = rangeSensor.getRange() < hasNoteThreshold; //cache sensor value so its same every iteration
+    hasGamePieceFront = frontRangeSensor.getRange() < frontHasNoteThreshold; //cache sensor value so its same every iteration
+    hasGamePieceBack = backRangeSensor.getRange() < backHasNoteThreshold;
     logPeriodic();
   }
 
@@ -174,12 +198,14 @@ public class ShooterSubsytem extends SubsystemBase {
 
     GremlinLogger.log(path + "LeftShooter/Velocity", getCurrentSpeedLeft());
     GremlinLogger.log(path + "RightShooter/Velocity", getCurrentSpeedRight());
-    GremlinLogger.log(path + "Has Note", hasNote.getAsBoolean());
+    GremlinLogger.log(path + "Has Note Front", hasNoteFront.getAsBoolean());
+    GremlinLogger.log(path + "Has Note Back", hasNoteBack.getAsBoolean());
     GremlinLogger.log(path + "State", mState.toString());
 
     SmartDashboard.putNumber(path + "LeftShooter/Velocity", getCurrentSpeedLeft());
     SmartDashboard.putNumber(path + "RightShooter/Velocity", getCurrentSpeedRight());
-    SmartDashboard.putBoolean(path + "Has Note", hasNote.getAsBoolean());
+    SmartDashboard.putBoolean(path + "Has Note Front", hasNoteFront.getAsBoolean());
+    SmartDashboard.putBoolean(path + "Has Note Back", hasNoteBack.getAsBoolean());
     SmartDashboard.putBoolean(path + "At Speed", atSpeed.getAsBoolean());
     SmartDashboard.putString(path + "State", mState.toString());
   }
@@ -195,11 +221,12 @@ public class ShooterSubsytem extends SubsystemBase {
   // and stay true for a short time after no game piece is detected.
   // This delay allows the game piece to fully leave the shooter before we power down and stop aiming.
   //The second trigger will stay try for a short time after note leaves because the velocity drops slightly as the note leaves
-  public final Trigger hasNote = new Trigger(() -> hasGamePiece).debounce(hasNoteDebounceTime, DebounceType.kFalling);
+  public final Trigger hasNoteFront = new Trigger(() -> hasGamePieceFront).debounce(hasNoteDebounceTime, DebounceType.kFalling);
+  public final Trigger hasNoteBack = new Trigger(() -> hasGamePieceBack).debounce(hasNoteDebounceTime, DebounceType.kFalling);
   public final Trigger atSpeed = new Trigger(() -> atTargetSpeed()).debounce(hasNoteDebounceTime, DebounceType.kFalling);
 
   //isShooting is only enabled after revving has finished so we don't need to check for speed
-  public final Trigger shouldFeed = isShooting.and(hasNote);
+  public final Trigger shouldFeed = isShooting.and(hasNoteFront);
 
   public void configSim(){
     leftSimState = leftShooter.getSimState();

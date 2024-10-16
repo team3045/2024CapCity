@@ -4,17 +4,11 @@
 
 package frc.robot.constants;
 
-import edu.wpi.first.math.util.Units;
-
 /** Add your docs here. */
 public class IntakeConstants {
-    public static final int leftID = 12;
-    public static final int rightID = 13;
-    public static final String canbus = "Canivore 3045";
+    public static final int leftID = 15;
+    public static final int rightID = 16;
+    public static final String canbus = "3045 Canivore";
 
     public static final double intakeSpeed = 0.4;
-
-    public static final double intakeAngle = 140;
-
-    public static final double rangeSensorThreshold = Units.inchesToMeters(4) * 1000; //mm
 }

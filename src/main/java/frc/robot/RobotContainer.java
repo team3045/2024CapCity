@@ -92,18 +92,33 @@ public class RobotContainer {
           ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
       .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
-    joystick.R1().onTrue(shooter.coastShootersAndIdle());
+    //joystick.R1().onTrue(shooter.coastShootersAndIdle());
+    joystick.R1().toggleOnTrue(
+      arm.goToIntake()
+      .alongWith(intake.setIntakingState())
+      .alongWith(shooter.feedNote())
+      .finallyDo(() -> intake.setIdleStateRunnable())
+    );
+
+    intake.isIntaking
+      .and(arm.atTarget)
+      .and(shooter.hasNoteFront.negate())
+      .whileTrue(intake.runIntakeMotor().finallyDo(() -> intake.setIdleState()));
+    
+    shooter.hasNoteFront
+      .and(shooter.hasNoteBack)
+      .whileTrue(shooter.runBackSlow().finallyDo(() -> shooter.stopFeed()));
 
     /*Triggers to deal with State of Shooter */
     shooter.isRevving 
-      .and(shooter.hasNote)
+      .and(shooter.hasNoteFront)
       .and(shooter.atSpeed)
       .and(arm.atTarget)
       .and(drivetrain.withinRange) //TODO: add a check that a main "shooter" camera sees the target
       .whileTrue(shooter.setShooting().andThen(shooter.feedNote())); //TODO: add a cancel so we go back to normal rotation maybe
     
       //Once the note is gone we're done shooting so we go idle and coast the shooters
-    shooter.isShooting.and(shooter.hasNote.negate()).onTrue(
+    shooter.isShooting.and(shooter.hasNoteFront.negate()).onTrue(
       shooter.coastShootersAndIdle()
       .alongWith(arm.goToMin()));  
   }

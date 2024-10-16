@@ -10,10 +10,16 @@ import com.playingwithfusion.TimeOfFlight;
 
 /** Add your docs here. */
 public class DistanceSensorReader implements Runnable{
-    private final TimeOfFlight rangeSensor = new TimeOfFlight(0);
+    private int id;
+    private final TimeOfFlight rangeSensor;
 
     /*For Thread Safety */
     private AtomicReference<Double> rangeSensorValue = new AtomicReference<>();
+
+    public DistanceSensorReader(int id){
+        this.id = id;
+        rangeSensor = new TimeOfFlight(this.id);
+    }
 
     @Override
     public void run() {

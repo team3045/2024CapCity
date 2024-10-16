@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -50,9 +51,11 @@ public class IntakeSubsystem extends SubsystemBase {
   /** Creates a new Intake. */
   public IntakeSubsystem() {
     intakeMotorLeft.getConfigurator().apply(
-      new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+      new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake)
+        .withInverted(InvertedValue.CounterClockwise_Positive));
     intakeMotorRight.getConfigurator().apply(
-      new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+      new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake)
+        .withInverted(InvertedValue.CounterClockwise_Positive));
     
     state = IntakeState.IDLE;
 
@@ -72,7 +75,23 @@ public class IntakeSubsystem extends SubsystemBase {
       intakeMotorLeft.set(IntakeConstants.intakeSpeed);
       intakeMotorRight.set(IntakeConstants.intakeSpeed);
       state = IntakeState.INTAKING;
+    }).finallyDo(() -> {
+      intakeMotorLeft.stopMotor();
+      intakeMotorRight.stopMotor();
+      state = IntakeState.IDLE;
     });
+  }
+
+  public Command setIntakingState(){
+    return this.runOnce(() -> state = IntakeState.INTAKING);
+  }
+
+  public Command setIdleState(){
+    return this.runOnce(() -> state = IntakeState.IDLE);
+  }
+
+  public void setIdleStateRunnable(){
+    state = IntakeState.IDLE;
   }
 
 
