@@ -40,6 +40,7 @@ public class ShooterSubsytem extends SubsystemBase {
 
   public enum ShooterState{
     IDLE, 
+    INTAKING,
     REVVING,
     SHOOTING,
     AMP,
@@ -162,6 +163,18 @@ public class ShooterSubsytem extends SubsystemBase {
     }).withName("Feeding Note");
   }
 
+  public Command startIntaking(){
+    return this.run(() -> {
+      feedMotor.set(0.1);
+      mState = ShooterState.INTAKING;
+    });
+  }
+  
+  public void stopIntaking(){
+      feedMotor.set(0);
+      mState = ShooterState.IDLE;
+  }
+
   //shooters neutral mode should be coast
   public Command coastShootersAndIdle(){
     return this.runOnce(() -> {
@@ -186,8 +199,10 @@ public class ShooterSubsytem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    hasGamePieceFront = frontRangeSensor.getRange() < frontHasNoteThreshold; //cache sensor value so its same every iteration
-    hasGamePieceBack = backRangeSensor.getRange() < backHasNoteThreshold;
+    if(frontRangeSensor.isValid())
+      hasGamePieceFront = frontRangeSensor.getRange() < frontHasNoteThreshold; //cache sensor value so its same every iteration
+    if(backRangeSensor.isValid())
+      hasGamePieceBack = backRangeSensor.getRange() < backHasNoteThreshold;
     logPeriodic();
   }
 

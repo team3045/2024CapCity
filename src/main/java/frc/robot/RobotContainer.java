@@ -9,6 +9,8 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
@@ -57,9 +59,6 @@ public class RobotContainer {
     // reset the field-centric heading on left bumper press
     joystick.L2().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
 
-    //joystick.R2().whileTrue(Commands.print("\033[31mRunning Intake\033[39m"));
-    joystick.R2().whileTrue(intake.runIntakeMotor());
-
     joystick.pov(0).whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(0.5).withVelocityY(0)));
     joystick.pov(180).whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(-0.5).withVelocityY(0)));
 
@@ -92,23 +91,30 @@ public class RobotContainer {
           ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
       .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
-    //joystick.R1().onTrue(shooter.coastShootersAndIdle());
-    joystick.R1().toggleOnTrue(
-      arm.goToIntake()
-      .alongWith(intake.setIntakingState())
-      .alongWith(shooter.feedNote())
-      .finallyDo(() -> intake.setIdleStateRunnable())
+    joystick.R1().toggleOnTrue( 
+        (arm.goToIntake()
+          .andThen(Commands.waitUntil(arm.atIntake))
+          .andThen(intake.setIntakingState())
+          .andThen(intake.runIntakeMotor()
+            .finallyDo(() -> intake.stopRunnable())))
+        .alongWith(
+          shooter.startIntaking()
+            .finallyDo(() -> shooter.stopIntaking())
+        )
     );
 
-    intake.isIntaking
-      .and(arm.atTarget)
-      .and(shooter.hasNoteFront.negate())
-      .whileTrue(intake.runIntakeMotor().finallyDo(() -> intake.setIdleState()));
-    
-    shooter.hasNoteFront
-      .and(shooter.hasNoteBack)
-      .whileTrue(shooter.runBackSlow().finallyDo(() -> shooter.stopFeed()));
+    joystick.L1().onTrue(arm.goToMax());
+    joystick.R2().onTrue(new InstantCommand(() -> arm.findZero()));
 
+    intake.isIntaking
+      .and(shooter.hasNoteBack)
+      .onTrue(
+        (intake.stop()
+        .alongWith(new InstantCommand(() -> shooter.stopIntaking())))
+        .andThen(shooter.runBackSlow().until(shooter.hasNoteFront)
+          .finallyDo(() -> shooter.stopIntaking()))
+      );
+    
     /*Triggers to deal with State of Shooter */
     shooter.isRevving 
       .and(shooter.hasNoteFront)

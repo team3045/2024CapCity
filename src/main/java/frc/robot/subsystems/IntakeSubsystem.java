@@ -18,11 +18,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.constants.IntakeConstants;
+import frc.robot.commons.GremlinLogger;
+import static frc.robot.constants.IntakeConstants.*;
 
 public class IntakeSubsystem extends SubsystemBase {
-  private TalonFX intakeMotorLeft = new TalonFX(IntakeConstants.leftID, IntakeConstants.canbus);
-  private TalonFX intakeMotorRight = new TalonFX(IntakeConstants.rightID, IntakeConstants.canbus);
+  private TalonFX intakeMotorLeft = new TalonFX(leftID, canbus);
+  private TalonFX intakeMotorRight = new TalonFX(rightID, canbus);
 
   private enum IntakeState{
     INTAKING,
@@ -66,19 +67,13 @@ public class IntakeSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    GremlinLogger.logSD(path + "State", state.toString());
   }
 
   public Command runIntakeMotor(){
     return this.run(() -> {
-      System.out.println("\033[31mRunning Intake\033[39m");
-      intakeMotorLeft.set(IntakeConstants.intakeSpeed);
-      intakeMotorRight.set(IntakeConstants.intakeSpeed);
-      state = IntakeState.INTAKING;
-    }).finallyDo(() -> {
-      intakeMotorLeft.stopMotor();
-      intakeMotorRight.stopMotor();
-      state = IntakeState.IDLE;
+      intakeMotorLeft.set(intakeSpeed);
+      intakeMotorRight.set(intakeSpeed);
     });
   }
 
@@ -86,11 +81,32 @@ public class IntakeSubsystem extends SubsystemBase {
     return this.runOnce(() -> state = IntakeState.INTAKING);
   }
 
+  public Command switchState(){
+    return this.runOnce(() -> {
+      if(state == IntakeState.INTAKING){
+        state = IntakeState.IDLE;
+        System.out.println("switched to idle");
+      }
+      else if (state == IntakeState.IDLE){
+        state = IntakeState.INTAKING;
+        System.out.println("switched to intaking");
+      }
+    });
+  }
+
   public Command setIdleState(){
+    intakeMotorLeft.stopMotor();
+    intakeMotorRight.stopMotor();
     return this.runOnce(() -> state = IntakeState.IDLE);
   }
 
   public void setIdleStateRunnable(){
+    state = IntakeState.IDLE;
+  }
+
+  public void stopRunnable(){
+    intakeMotorLeft.stopMotor();
+    intakeMotorRight.stopMotor();
     state = IntakeState.IDLE;
   }
 

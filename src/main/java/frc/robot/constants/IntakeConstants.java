@@ -11,4 +11,5 @@ public class IntakeConstants {
     public static final String canbus = "3045 Canivore";
 
     public static final double intakeSpeed = 0.4;
+    public static final String path = "Intake/";
 }
