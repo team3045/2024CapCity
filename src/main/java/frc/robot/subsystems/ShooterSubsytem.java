@@ -138,6 +138,13 @@ public class ShooterSubsytem extends SubsystemBase {
     rightShooter.setControl(request);
   }
 
+  public Command runForwardSlow(){
+    return this.run(() -> {
+      setShooterSpeed(-10);
+      feedMotor.set(0.1);
+    });
+  }
+
   public Command runBackSlow(){
     return this.run(() -> {
       setShooterSpeed(-10);

@@ -91,7 +91,7 @@ public class RobotContainer {
           ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
       .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
-    joystick.R1().toggleOnTrue( 
+    joystick.R1().and(shooter.hasNoteBack.negate()).toggleOnTrue( 
         (arm.goToIntake()
           .andThen(Commands.waitUntil(arm.atIntake))
           .andThen(intake.setIntakingState())
@@ -103,17 +103,19 @@ public class RobotContainer {
         )
     );
 
-    joystick.L1().onTrue(arm.goToMax());
-    joystick.R2().onTrue(new InstantCommand(() -> arm.findZero()));
-
     intake.isIntaking
       .and(shooter.hasNoteBack)
       .onTrue(
         (intake.stop()
         .alongWith(new InstantCommand(() -> shooter.stopIntaking())))
-        .andThen(shooter.runBackSlow().until(shooter.hasNoteFront)
-          .finallyDo(() -> shooter.stopIntaking()))
+        .andThen(shooter.runBackSlow().until(shooter.hasNoteFront))
+        .andThen(shooter.runForwardSlow().until(shooter.hasNoteFront.negate()))
       );
+  
+
+    joystick.L1().onTrue(arm.goToMax());
+    joystick.R2().onTrue(new InstantCommand(() -> arm.findZero()));
+    
     
     /*Triggers to deal with State of Shooter */
     shooter.isRevving 

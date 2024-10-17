@@ -259,6 +259,7 @@ public class ArmSubsystem extends SubsystemBase {
     rightMotor.setVoltage(0);
     Timer.delay(0.3);
     cancoder.setPosition(Units.degreesToRotations(minAngle) * sensorToMechanismRatio);
+    setpoint = getPositionDegrees();
   }
 
   /**
