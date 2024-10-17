@@ -93,6 +93,7 @@ public class ArmSubsystem extends SubsystemBase {
   // Add a trigger for isReady; debounce it so that it doesn't flicker while we're shooting
   // TODO: Consider caching.
   public final Trigger atTarget = new Trigger(this::atTargetPosition).debounce(atTargetDelay, DebounceType.kFalling);
+  public final Trigger atIntake = new Trigger(this::atIntake).debounce(atTargetDelay,DebounceType.kFalling);
 
   //SYSID
   private final MutableMeasure<Voltage> appliedVoltage = MutableMeasure.mutable(Volts.of(0));
@@ -217,6 +218,7 @@ public class ArmSubsystem extends SubsystemBase {
     SmartDashboard.putNumber(path + "Velocity (Deg per S)", getVelocityDegPerSec());
     SmartDashboard.putNumber(path + "Target Angle (Deg)", setpoint);
     SmartDashboard.putBoolean(path + "At Position", atTarget.getAsBoolean());
+    SmartDashboard.putBoolean(path + "At Intake", atIntake.getAsBoolean());
   }
 
   /**
@@ -227,6 +229,11 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public boolean atTargetPosition(){
     return MathUtil.isNear(setpoint,getPositionDegrees(), angleTolerance) && 
+          MathUtil.isNear(0, getVelocityDegPerSec(), velocityTolerance);
+  }
+
+  public boolean atIntake(){
+    return MathUtil.isNear(intakeAngle,getPositionDegrees(), angleTolerance) && 
           MathUtil.isNear(0, getVelocityDegPerSec(), velocityTolerance);
   }
 
@@ -252,7 +259,7 @@ public class ArmSubsystem extends SubsystemBase {
     rightMotor.setVoltage(0);
     Timer.delay(0.3);
     cancoder.setPosition(Units.degreesToRotations(minAngle) * sensorToMechanismRatio);
-    zeroed = true;
+    setpoint = getPositionDegrees();
   }
 
   /**
@@ -284,8 +291,7 @@ public class ArmSubsystem extends SubsystemBase {
   public Command goToAngle(DoubleSupplier angle){
     return this.runOnce(() -> {
       setTarget(angle.getAsDouble());
-      System.out.println(angle.getAsDouble());
-    });
+    }).until(() -> atTargetPosition());
   }
 
   /**

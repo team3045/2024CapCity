@@ -54,6 +54,15 @@ public class GremlinLogger extends DogLog{
         SmartDashboard.putNumber(key, value);
     }
 
+     /**Logs a String and also puts it on Smartdashboard
+     * @param key
+     * @param value
+     */
+    public static void logSD(String key, String value){
+        log(key, value);
+        SmartDashboard.putString(key, value);
+    }
+
     /**Logs a boolen and also puts it on Smartdashboard
      * @param key
      * @param value

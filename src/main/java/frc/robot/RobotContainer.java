@@ -9,11 +9,14 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsytem;
 import frc.robot.vision.GremlinApriltagVision;
 
@@ -23,6 +26,7 @@ public class RobotContainer {
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
   public final ArmSubsystem arm = new ArmSubsystem();
   public final ShooterSubsytem shooter = new ShooterSubsytem();
+  public final IntakeSubsystem intake = new IntakeSubsystem();
 
   /*Vision System */
   public final GremlinApriltagVision apriltagVision = new GremlinApriltagVision(
@@ -87,18 +91,42 @@ public class RobotContainer {
           ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
       .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
 
-    joystick.R1().onTrue(shooter.coastShootersAndIdle());
+    joystick.R1().and(shooter.hasNoteBack.negate()).toggleOnTrue( 
+        (arm.goToIntake()
+          .andThen(Commands.waitUntil(arm.atIntake))
+          .andThen(intake.setIntakingState())
+          .andThen(intake.runIntakeMotor()
+            .finallyDo(() -> intake.stopRunnable())))
+        .alongWith(
+          shooter.startIntaking()
+            .finallyDo(() -> shooter.stopIntaking())
+        )
+    );
 
+    intake.isIntaking
+      .and(shooter.hasNoteBack)
+      .onTrue(
+        (intake.stop()
+        .alongWith(new InstantCommand(() -> shooter.stopIntaking())))
+        .andThen(shooter.runBackSlow().until(shooter.hasNoteFront))
+        .andThen(shooter.runForwardSlow().until(shooter.hasNoteFront.negate()))
+      );
+  
+
+    joystick.L1().onTrue(arm.goToMax());
+    joystick.R2().onTrue(new InstantCommand(() -> arm.findZero()));
+    
+    
     /*Triggers to deal with State of Shooter */
     shooter.isRevving 
-      .and(shooter.hasNote)
+      .and(shooter.hasNoteFront)
       .and(shooter.atSpeed)
       .and(arm.atTarget)
       .and(drivetrain.withinRange) //TODO: add a check that a main "shooter" camera sees the target
       .whileTrue(shooter.setShooting().andThen(shooter.feedNote())); //TODO: add a cancel so we go back to normal rotation maybe
     
       //Once the note is gone we're done shooting so we go idle and coast the shooters
-    shooter.isShooting.and(shooter.hasNote.negate()).onTrue(
+    shooter.isShooting.and(shooter.hasNoteFront.negate()).onTrue(
       shooter.coastShootersAndIdle()
       .alongWith(arm.goToMin()));  
   }

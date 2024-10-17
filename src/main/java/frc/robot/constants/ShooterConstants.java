@@ -21,7 +21,8 @@ public class ShooterConstants {
     public static final int feedMotorID = 19;
     public static final String canbus = "3045 Canivore";
 
-    public static final double hasNoteThreshold = 10; //cm
+    public static final double frontHasNoteThreshold = 40; //mm
+    public static final double backHasNoteThreshold = 90; //mm
     public static final double hasNoteDebounceTime = 0.5; //s
 
     public static final double shootingVelocity = 10; //rot per seconds

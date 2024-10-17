@@ -7,21 +7,35 @@ package frc.robot.commons;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.playingwithfusion.TimeOfFlight;
+import com.playingwithfusion.TimeOfFlight.RangingMode;
 
 /** Add your docs here. */
 public class DistanceSensorReader implements Runnable{
-    private final TimeOfFlight rangeSensor = new TimeOfFlight(0);
+    private int id;
+    private final TimeOfFlight rangeSensor;
 
     /*For Thread Safety */
     private AtomicReference<Double> rangeSensorValue = new AtomicReference<>();
+    private AtomicReference<Boolean> validMeasurment = new AtomicReference<>();
+
+    public DistanceSensorReader(int id){
+        this.id = id;
+        rangeSensor = new TimeOfFlight(this.id);
+        rangeSensor.setRangingMode(RangingMode.Short, 50);
+    }
 
     @Override
     public void run() {
         rangeSensorValue.set(rangeSensor.getRange());
+        validMeasurment.set(rangeSensor.isRangeValid());
     }
 
     public double getRange(){
         return rangeSensorValue.get();
+    }
+
+    public boolean isValid(){
+        return validMeasurment.get();
     }
 
 }
