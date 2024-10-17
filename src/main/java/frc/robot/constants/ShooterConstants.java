@@ -16,10 +16,10 @@ import frc.robot.commons.GremlinUtil;
 
 /** Add your docs here. */
 public class ShooterConstants {
-    public static final int leftMotorID = 14;
-    public static final int rightMotorID = 15;
-    public static final int feedMotorID = 16;
-    public static final String canbus = "rio";
+    public static final int leftMotorID = 17;
+    public static final int rightMotorID = 18;
+    public static final int feedMotorID = 19;
+    public static final String canbus = "3045 Canivore";
 
     public static final double hasNoteThreshold = 10; //cm
     public static final double hasNoteDebounceTime = 0.5; //s
