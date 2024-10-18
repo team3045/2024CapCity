@@ -4,7 +4,8 @@ import java.util.HashMap;
 
 public class SingleTagAdjusters {
 
-  private SingleTagAdjusters() {}
+  private SingleTagAdjusters() {
+  }
 
   private static HashMap<Integer, Double> SingleTagAdjustersTable = new HashMap<Integer, Double>();
 

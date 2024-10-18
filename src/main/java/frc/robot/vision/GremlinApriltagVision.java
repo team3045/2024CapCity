@@ -51,41 +51,43 @@ public class GremlinApriltagVision extends SubsystemBase {
   private VisionSystemSim visionSystemSim;
   private SimCameraProperties[] simCameraProperties;
 
-  //Will be the function in drivetrain that adds vision estimate to pose estimation
-  private Consumer<List<TimestampedVisionUpdate>> visionConsumer = (visionUpdates) -> {};
-  //Will be the function in driveTrain that supplies current pose estimate
-  private Supplier<Pose2d> poseSupplier = () -> new Pose2d(); 
+  // Will be the function in drivetrain that adds vision estimate to pose
+  // estimation
+  private Consumer<List<TimestampedVisionUpdate>> visionConsumer = (visionUpdates) -> {
+  };
+  // Will be the function in driveTrain that supplies current pose estimate
+  private Supplier<Pose2d> poseSupplier = () -> new Pose2d();
 
   /** Creates a new GremlinApriltagVision. */
   public GremlinApriltagVision(
-    BreadPhotonCamera[] cameras, 
-    Supplier<Pose2d> poseSupplier, 
-    Consumer<List<TimestampedVisionUpdate>> visionConsumer) {
+      BreadPhotonCamera[] cameras,
+      Supplier<Pose2d> poseSupplier,
+      Consumer<List<TimestampedVisionUpdate>> visionConsumer) {
 
     this.cameras = cameras;
     this.poseSupplier = poseSupplier;
     this.visionConsumer = visionConsumer;
 
-    if(Utils.isSimulation()){
+    if (Utils.isSimulation()) {
       configSim();
     }
   }
-  
+
   @Override
   public void periodic() {
     processVisionUpdates();
     visionConsumer.accept(visionUpdates);
   }
 
-  public void processVisionUpdates(){
-    //Reset VisionUpdates
+  public void processVisionUpdates() {
+    // Reset VisionUpdates
     visionUpdates = new ArrayList<>();
-    //Get current robot position
+    // Get current robot position
     Pose2d currentPose = poseSupplier.get();
 
-    //loop through all cameras
-    for(int i = 0; i < cameras.length; i++){
-      //Camera specific variables
+    // loop through all cameras
+    for (int i = 0; i < cameras.length; i++) {
+      // Camera specific variables
       Transform3d camToRobotTransform = GeomUtil.pose3dToTransform3d(cameras[i].getCameraPose()).inverse();
       PhotonPipelineResult unprocessedResult = cameras[i].getLatestResult();
       Pose3d cameraPose;
@@ -98,18 +100,17 @@ public class GremlinApriltagVision extends SubsystemBase {
       GremlinLogger.logSD(logPath + "/Hastargets", unprocessedResult.hasTargets());
       GremlinLogger.logSD(logPath + "/LatencyMS", unprocessedResult.getLatencyMillis());
       GremlinLogger.logSD(logPath + "/Timestamp", timestamp);
-      
 
       // Continue if the camera doesn't have any targets
       if (!unprocessedResult.hasTargets()) {
         continue;
-      }      
+      }
 
-      //if it has a MultiTag result we prefer to use that
+      // if it has a MultiTag result we prefer to use that
       boolean shouldUseMultiTag = unprocessedResult.getMultiTagResult().estimatedPose.isPresent;
-   
-      if(shouldUseMultiTag){
-        //TODO: think about adding processing to compare best and alt
+
+      if (shouldUseMultiTag) {
+        // TODO: think about adding processing to compare best and alt
         cameraPose = GeomUtil.transform3dToPose3d(unprocessedResult.getMultiTagResult().estimatedPose.best);
 
         calculatedRobotPose = cameraPose.transformBy(camToRobotTransform).toPose2d();
@@ -117,15 +118,16 @@ public class GremlinApriltagVision extends SubsystemBase {
         // Populate array of tag poses with tags used
         for (int id : unprocessedResult.getMultiTagResult().fiducialIDsUsed) {
           tagPose3ds.add(aprilTags.getTagPose(id).get());
-          //TODO: add logs of each tag here
+          // TODO: add logs of each tag here
         }
 
         GremlinLogger.logSD(logPath + "/CameraPose (MultiTag)", cameraPose);
       } else {
         PhotonTrackedTarget target = unprocessedResult.getBestTarget();
 
-        //We dont like some tags
-        if(EXCLUDED_TAG_IDS.contains(target.getFiducialId())) continue;
+        // We dont like some tags
+        if (EXCLUDED_TAG_IDS.contains(target.getFiducialId()))
+          continue;
 
         Pose3d tagPose = aprilTags.getTagPose(target.getFiducialId()).get();
 
@@ -135,15 +137,15 @@ public class GremlinApriltagVision extends SubsystemBase {
         Pose2d altRobotPose = altCamPose.transformBy(camToRobotTransform).toPose2d();
 
         double ambiguity = target.getPoseAmbiguity();
-        boolean betterRotationDiff = (Math.abs(bestRobotPose.getRotation().minus(currentPose.getRotation()).getRadians())
-        < Math.abs(altRobotPose.getRotation().minus(currentPose.getRotation()).getRadians()));
-        
-        if(ambiguity < MAX_AMBIGUITY){
-          //Best pose is significantly better than alt
+        boolean betterRotationDiff = (Math.abs(bestRobotPose.getRotation().minus(currentPose.getRotation())
+            .getRadians()) < Math.abs(altRobotPose.getRotation().minus(currentPose.getRotation()).getRadians()));
+
+        if (ambiguity < MAX_AMBIGUITY) {
+          // Best pose is significantly better than alt
           cameraPose = bestCamPose;
           calculatedRobotPose = bestRobotPose;
-        } else if (betterRotationDiff){
-          //the rotation based on best pose is closer to our current estimated rotation
+        } else if (betterRotationDiff) {
+          // the rotation based on best pose is closer to our current estimated rotation
           cameraPose = bestCamPose;
           calculatedRobotPose = bestRobotPose;
         } else {
@@ -157,7 +159,8 @@ public class GremlinApriltagVision extends SubsystemBase {
         GremlinLogger.logSD(logPath + "/CameraPose (SingleTag)", cameraPose);
       }
 
-      if(cameraPose == null || calculatedRobotPose == null) continue;
+      if (cameraPose == null || calculatedRobotPose == null)
+        continue;
 
       // Move on to next camera if robot pose is off the field
       if (calculatedRobotPose.getX() < -FIELD_BORDER_MARGIN
@@ -185,29 +188,27 @@ public class GremlinApriltagVision extends SubsystemBase {
       }
 
       Vector<N3> stdDevs = VecBuilder.fill(
-        xyStdDev,
-        xyStdDev,
-        thetaStdDev
-      );
+          xyStdDev,
+          xyStdDev,
+          thetaStdDev);
 
-      if(!shouldUseMultiTag){
+      if (!shouldUseMultiTag) {
         stdDevs.times(singleTagAdjustment);
       }
 
-        visionUpdates.add(
-        new TimestampedVisionUpdate(
-          calculatedRobotPose, 
-          timestamp, 
-          stdDevs));
+      visionUpdates.add(
+          new TimestampedVisionUpdate(
+              calculatedRobotPose,
+              timestamp,
+              stdDevs));
 
-
-      GremlinLogger.logSD(logPath+ "/VisionPose", calculatedRobotPose);
+      GremlinLogger.logSD(logPath + "/VisionPose", calculatedRobotPose);
       GremlinLogger.logSD(logPath + "/TagsUsed", tagPose3ds.size());
       GremlinLogger.logStdDevs(logPath, stdDevs);
     }
   }
 
-  public void configSim(){
+  public void configSim() {
     visionSystemSim = new VisionSystemSim("ApriltagVision");
     AprilTagFieldLayout layout;
     try {
@@ -219,18 +220,18 @@ public class GremlinApriltagVision extends SubsystemBase {
     simCameras = new PhotonCameraSim[cameras.length];
     simCameraProperties = new SimCameraProperties[cameras.length];
 
-    for(int i =0; i < cameras.length; i++){
+    for (int i = 0; i < cameras.length; i++) {
       simCameraProperties[i] = VisionConstants.getOV2311();
-      simCameras[i] = new PhotonCameraSim(cameras[i].getPhotonCamera(),simCameraProperties[i]);
+      simCameras[i] = new PhotonCameraSim(cameras[i].getPhotonCamera(), simCameraProperties[i]);
       simCameras[i].enableDrawWireframe(false);
-      simCameras[i].enableRawStream(false); //(http://localhost:1181 / 1182)
+      simCameras[i].enableRawStream(false); // (http://localhost:1181 / 1182)
       simCameras[i].enableProcessedStream(false);
       visionSystemSim.addCamera(simCameras[i], GeomUtil.pose3dToTransform3d(cameras[i].getCameraPose()));
     }
   }
 
   @Override
-  public void simulationPeriodic(){
+  public void simulationPeriodic() {
     visionSystemSim.update(poseSupplier.get());
     Field2d debugField = visionSystemSim.getDebugField();
     debugField.getObject("EstimatedRobot").setPose(poseSupplier.get());

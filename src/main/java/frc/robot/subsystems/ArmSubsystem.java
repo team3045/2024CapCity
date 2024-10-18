@@ -64,93 +64,95 @@ public class ArmSubsystem extends SubsystemBase {
   private double setpoint = minAngle;
   private boolean zeroed = false;
 
-  //SIMULATION
+  // SIMULATION
   private TalonFXSimState leftMotorSimState;
   private TalonFXSimState rightMotorSimState;
   private CANcoderSimState cancoderSimState;
 
   private static SingleJointedArmSim armSim = new SingleJointedArmSim(
-    DCMotor.getKrakenX60(2), 
-    totalGearing, 
-    armMOI, 
-    armCOM, 
-    Units.degreesToRadians(minAngle),
-    Units.degreesToRadians(maxAngle), 
-    true, 
-    Units.degreesToRadians(minAngle));
+      DCMotor.getKrakenX60(2),
+      totalGearing,
+      armMOI,
+      armCOM,
+      Units.degreesToRadians(minAngle),
+      Units.degreesToRadians(maxAngle),
+      true,
+      Units.degreesToRadians(minAngle));
 
-  //Dashboard 
+  // Dashboard
   private MechanismLigament2d mechanismLigament2d;
   private MechanismRoot2d mechanismRoot;
   private Mechanism2d mechanism;
 
-  //Publishing 
+  // Publishing
   private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
   private final NetworkTable armTable = inst.getTable("Positioner");
-  private final StructPublisher<Pose3d> pose3dPublisher = armTable.getStructTopic("Arm Pose3d", Pose3d.struct).publish();
+  private final StructPublisher<Pose3d> pose3dPublisher = armTable.getStructTopic("Arm Pose3d", Pose3d.struct)
+      .publish();
 
-  //TRIGGERS
-  // Add a trigger for isReady; debounce it so that it doesn't flicker while we're shooting
+  // TRIGGERS
+  // Add a trigger for isReady; debounce it so that it doesn't flicker while we're
+  // shooting
   // TODO: Consider caching.
   public final Trigger atTarget = new Trigger(this::atTargetPosition).debounce(atTargetDelay, DebounceType.kFalling);
-  public final Trigger atIntake = new Trigger(this::atIntake).debounce(atTargetDelay,DebounceType.kFalling);
+  public final Trigger atIntake = new Trigger(this::atIntake).debounce(atTargetDelay, DebounceType.kFalling);
 
-  //SYSID
+  // SYSID
   private final MutableMeasure<Voltage> appliedVoltage = MutableMeasure.mutable(Volts.of(0));
   private final MutableMeasure<Angle> appliedAngle = MutableMeasure.mutable(Rotations.of(0));
   private final MutableMeasure<Velocity<Angle>> appliedVelocity = MutableMeasure.mutable(RotationsPerSecond.of(0));
   private final MutableMeasure<Current> appliedCurrent = MutableMeasure.mutable(Amps.of(0));
   private final Measure<Velocity<Voltage>> rampRate = Volts.of(1).per(Seconds.of(1));
   private SysIdRoutine armRoutine = new SysIdRoutine(
-    new SysIdRoutine.Config(
-      rampRate,
-      Volts.of(4),
-      Seconds.of(10),
-      null
-    ),
-    new SysIdRoutine.Mechanism(
-      (volts) -> applyVoltage(volts.in(Volts)), 
-      log -> {
-        log.motor("LeftSideMotor")
-          .voltage(appliedVoltage.mut_replace(leftMotor.getMotorVoltage().getValueAsDouble(), Volts))
-          .angularPosition(appliedAngle.mut_replace(getPositionRotations(), Rotations))
-          .angularVelocity(appliedVelocity.mut_replace(getVelocityRotPerSec(), RotationsPerSecond))
-          .current(appliedCurrent.mut_replace(leftMotor.getTorqueCurrent().getValueAsDouble(), Amps));
-        log.motor("RightSideMotor")
-          .voltage(appliedVoltage.mut_replace(leftMotor.getMotorVoltage().getValueAsDouble(), Volts))
-          .angularPosition(appliedAngle.mut_replace(getPositionRotations(), Rotations))
-          .angularVelocity(appliedVelocity.mut_replace(getVelocityRotPerSec(), RotationsPerSecond))
-          .current(appliedCurrent.mut_replace(leftMotor.getTorqueCurrent().getValueAsDouble(), Amps));
-      }, 
-    this)
-  );
+      new SysIdRoutine.Config(
+          rampRate,
+          Volts.of(4),
+          Seconds.of(10),
+          null),
+      new SysIdRoutine.Mechanism(
+          (volts) -> applyVoltage(volts.in(Volts)),
+          log -> {
+            log.motor("LeftSideMotor")
+                .voltage(appliedVoltage.mut_replace(leftMotor.getMotorVoltage().getValueAsDouble(), Volts))
+                .angularPosition(appliedAngle.mut_replace(getPositionRotations(), Rotations))
+                .angularVelocity(appliedVelocity.mut_replace(getVelocityRotPerSec(), RotationsPerSecond))
+                .current(appliedCurrent.mut_replace(leftMotor.getTorqueCurrent().getValueAsDouble(), Amps));
+            log.motor("RightSideMotor")
+                .voltage(appliedVoltage.mut_replace(leftMotor.getMotorVoltage().getValueAsDouble(), Volts))
+                .angularPosition(appliedAngle.mut_replace(getPositionRotations(), Rotations))
+                .angularVelocity(appliedVelocity.mut_replace(getVelocityRotPerSec(), RotationsPerSecond))
+                .current(appliedCurrent.mut_replace(leftMotor.getTorqueCurrent().getValueAsDouble(), Amps));
+          },
+          this));
 
   /** Creates a new ArmSubsystem. */
   public ArmSubsystem() {
     configDevices();
     setpoint = minAngle;
 
-    //Setup Mechanism
+    // Setup Mechanism
     mechanism = new Mechanism2d(canvasWidth, canvasHeight);
     mechanismRoot = mechanism.getRoot("pivot", rootX, rootY);
     mechanismLigament2d = mechanismRoot.append(
-      new MechanismLigament2d("armLength", armCOM, -minAngle + mech2dOffset) //offset so its to the left, just personal preference
+        new MechanismLigament2d("armLength", armCOM, -minAngle + mech2dOffset) // offset so its to the left, just
+                                                                               // personal preference
     );
 
-    if(Utils.isSimulation()){
+    if (Utils.isSimulation()) {
       configSim();
     }
   }
 
   /**
-   * Config all devices so we don't rely on Tuner X configs. Called on subsystem construction. 
+   * Config all devices so we don't rely on Tuner X configs. Called on subsystem
+   * construction.
    */
-  public void configDevices(){
+  public void configDevices() {
     leftMotor.getConfigurator().apply(motorConfig.withMotorOutput(
-      new MotorOutputConfigs().withInverted(leftInverted).withNeutralMode(NeutralModeValue.Brake)));
+        new MotorOutputConfigs().withInverted(leftInverted).withNeutralMode(NeutralModeValue.Brake)));
     rightMotor.getConfigurator().apply(motorConfig.withMotorOutput(
-      new MotorOutputConfigs().withInverted(rightInverted).withNeutralMode(NeutralModeValue.Brake)));
-    cancoder.getConfigurator().apply(cancoderConfig); 
+        new MotorOutputConfigs().withInverted(rightInverted).withNeutralMode(NeutralModeValue.Brake)));
+    cancoder.getConfigurator().apply(cancoderConfig);
 
     leftMotor.clearStickyFaults();
     rightMotor.clearStickyFaults();
@@ -161,7 +163,7 @@ public class ArmSubsystem extends SubsystemBase {
     cancoder.setPosition(Units.degreesToRotations(minAngle) * sensorToMechanismRatio);
   }
 
-  //Ideally don't use, add periodic functions in RobotContainer
+  // Ideally don't use, add periodic functions in RobotContainer
   @Override
   public void periodic() {
     displayMechanism();
@@ -171,41 +173,41 @@ public class ArmSubsystem extends SubsystemBase {
   /**
    * @return returns current position of arm in degrees
    */
-  public double getPositionDegrees(){
+  public double getPositionDegrees() {
     double position = cancoder.getPosition().getValueAsDouble();
     return Units.rotationsToDegrees(position / sensorToMechanismRatio);
   }
 
-  public double getPositionRotations(){
+  public double getPositionRotations() {
     return getPositionDegrees() / 360;
   }
 
-   /**
+  /**
    * @return returns current position of arm in Radians
    */
-  public double getPositionRadians(){
+  public double getPositionRadians() {
     double position = leftMotor.getPosition().getValueAsDouble();
     return Units.rotationsToRadians(position);
   }
-  
+
   /**
-   * @return the current velocity of the arm in Degs / Sec 
+   * @return the current velocity of the arm in Degs / Sec
    */
-  public double getVelocityDegPerSec(){
+  public double getVelocityDegPerSec() {
     double velocity = cancoder.getVelocity().getValueAsDouble();
     return Units.rotationsToDegrees(velocity / sensorToMechanismRatio);
   }
 
-  public double getVelocityRotPerSec(){
+  public double getVelocityRotPerSec() {
     return getVelocityDegPerSec() / 360;
   }
 
   /**
-   * Periodically log as well as put important metrics on SmartDashboard. 
+   * Periodically log as well as put important metrics on SmartDashboard.
    * Values ionclude Current Arm Angle, Velocity, and Setpoint
    * as well as indiviudal Motor Metrics
    */
-  public void logPeriodic(){
+  public void logPeriodic() {
     GremlinLogger.logTalonFX(path + "leftArmMotor", leftMotor);
     GremlinLogger.logTalonFX(path + "rightArmMotor", rightMotor);
 
@@ -223,22 +225,23 @@ public class ArmSubsystem extends SubsystemBase {
 
   /**
    * Checks if the arm is near the setpoint.
-   *  Arm is considered near the setpoint if its within a constant tolerance of 
+   * Arm is considered near the setpoint if its within a constant tolerance of
    * {@value frc.robot.constants.ArmConstants#angleTolerance} degrees
+   * 
    * @return True if arm is within tolerance. False if arm is not within tolerance
    */
-  public boolean atTargetPosition(){
-    return MathUtil.isNear(setpoint,getPositionDegrees(), angleTolerance) && 
-          MathUtil.isNear(0, getVelocityDegPerSec(), velocityTolerance);
+  public boolean atTargetPosition() {
+    return MathUtil.isNear(setpoint, getPositionDegrees(), angleTolerance) &&
+        MathUtil.isNear(0, getVelocityDegPerSec(), velocityTolerance);
   }
 
-  public boolean atIntake(){
-    return MathUtil.isNear(intakeAngle,getPositionDegrees(), angleTolerance) && 
-          MathUtil.isNear(0, getVelocityDegPerSec(), velocityTolerance);
+  public boolean atIntake() {
+    return MathUtil.isNear(intakeAngle, getPositionDegrees(), angleTolerance) &&
+        MathUtil.isNear(0, getVelocityDegPerSec(), velocityTolerance);
   }
 
-  public void findZero(){
-    if(zeroed){
+  public void findZero() {
+    if (zeroed) {
       return;
     }
     leftMotor.setVoltage(-1.0);
@@ -247,11 +250,11 @@ public class ArmSubsystem extends SubsystemBase {
     double time = Timer.getFPGATimestamp();
     Timer.delay(0.1);
 
-    while(true){
-      if(MathUtil.isNear(0, leftMotor.getVelocity().getValueAsDouble(), 0.1)){
+    while (true) {
+      if (MathUtil.isNear(0, leftMotor.getVelocity().getValueAsDouble(), 0.1)) {
         break;
       }
-      if(Timer.getFPGATimestamp() - time >= 5){ //5seconds timeout
+      if (Timer.getFPGATimestamp() - time >= 5) { // 5seconds timeout
         break;
       }
     }
@@ -263,12 +266,12 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   /**
-   * Internal Method to set the target position of the arm. 
+   * Internal Method to set the target position of the arm.
    * Should only be acessed externally through command factories
    * 
    * @param targetAngle desired angle of the arm in degrees
    */
-  private void setTarget(double targetAngle){
+  private void setTarget(double targetAngle) {
     setpoint = GremlinUtil.clampWithLogs(maxAngle, minAngle, targetAngle);
 
     double gravFeedforward = kG * Math.cos(getPositionRadians());
@@ -276,8 +279,8 @@ public class ArmSubsystem extends SubsystemBase {
     System.out.println("Current cos: " + Math.cos(getPositionRadians()));
 
     MotionMagicVoltage request = new MotionMagicVoltage(Units.degreesToRotations(setpoint))
-      .withEnableFOC(false).withSlot(0).withUpdateFreqHz(50)
-      .withFeedForward(gravFeedforward);
+        .withEnableFOC(false).withSlot(0).withUpdateFreqHz(50)
+        .withFeedForward(gravFeedforward);
 
     leftMotor.setControl(request);
     rightMotor.setControl(request);
@@ -285,85 +288,89 @@ public class ArmSubsystem extends SubsystemBase {
 
   /**
    * Basic command factory to send the arm to a specified angle
+   * 
    * @param angle desired angle of the arm in degrees
    * @return A command controlling the arm to travel to the specified angle
    */
-  public Command goToAngle(DoubleSupplier angle){
+  public Command goToAngle(DoubleSupplier angle) {
     return this.runOnce(() -> {
       setTarget(angle.getAsDouble());
     }).until(() -> atTargetPosition());
   }
 
   /**
-   * @return returns a command controlling the arm to travel to the Intake position
+   * @return returns a command controlling the arm to travel to the Intake
+   *         position
    */
-  public Command goToIntake(){
+  public Command goToIntake() {
     return goToAngle(() -> intakeAngle);
   }
 
   /**
    * @return returns a command controlling the arm to travel to the amp position
    */
-  public Command goToAmp(){
+  public Command goToAmp() {
     return goToAngle(() -> ampAngle);
   }
 
-  public Command goToMin(){
-    return goToAngle(()-> minAngle);
+  public Command goToMin() {
+    return goToAngle(() -> minAngle);
   }
 
-  public Command goToMax(){
+  public Command goToMax() {
     return goToAngle(() -> maxAngle);
   }
 
   /**
    * Gets the arm angle in the form of a Rotation2d
+   * 
    * @return a Rotation2d representing the current angle of the arm
    */
-  public Rotation2d getAngleRotation2d(){
+  public Rotation2d getAngleRotation2d() {
     return Rotation2d.fromDegrees(getPositionDegrees());
   }
 
   /**
    * Displays the arm as a 2d Widget on Smartdashboard
    */
-  public void displayMechanism(){
+  public void displayMechanism() {
     mechanismLigament2d.setAngle(getAngleRotation2d().times(-1).minus(Rotation2d.fromDegrees(mech2dOffset)));
     SmartDashboard.putData(path + "Mechanism", mechanism);
 
     double pitch = getPositionRadians();
 
     pose3dPublisher.set(new Pose3d(
-      new Translation3d(simPositionX,simPositionY,simPositionZ),
-      new Rotation3d(0,-pitch,0)
-    ));
+        new Translation3d(simPositionX, simPositionY, simPositionZ),
+        new Rotation3d(0, -pitch, 0)));
   }
 
   /**
    * Increases the arm angle by 5 degrees
+   * 
    * @return A command to increase the arm angle by 5 degree
    */
-  public Command increaseAngle(){
-    return goToAngle(() -> getPositionDegrees() + 5); 
+  public Command increaseAngle() {
+    return goToAngle(() -> getPositionDegrees() + 5);
   }
 
   /**
    * Decreases the arm angle by 5 degrees
+   * 
    * @return A command to decrease the arm angle by 5 degree
    */
-  public Command decreaseAngle(){
+  public Command decreaseAngle() {
     return goToAngle(() -> getPositionDegrees() - 5);
   }
 
-  public Command setAngleFromDistance(DoubleSupplier distance){
+  public Command setAngleFromDistance(DoubleSupplier distance) {
     return goToAngle(() -> getAngleFromDistance(distance));
   }
 
-  public double getAngleFromDistance(DoubleSupplier distance){
+  public double getAngleFromDistance(DoubleSupplier distance) {
     return ArmAngles.map.get(distance.getAsDouble());
   }
 
-  public void setCoast(){
+  public void setCoast() {
     leftMotor.setControl(new CoastOut());
     rightMotor.setControl(new CoastOut());
   }
@@ -371,7 +378,7 @@ public class ArmSubsystem extends SubsystemBase {
   /**
    * Configures Simulation
    */
-  public void configSim(){
+  public void configSim() {
     armSim.setState(0, 0);
     leftMotorSimState = leftMotor.getSimState();
     rightMotorSimState = rightMotor.getSimState();
@@ -387,7 +394,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   @Override
-  public void simulationPeriodic(){
+  public void simulationPeriodic() {
     leftMotorSimState = leftMotor.getSimState();
     rightMotorSimState = rightMotor.getSimState();
     cancoderSimState = cancoder.getSimState();
@@ -408,31 +415,30 @@ public class ArmSubsystem extends SubsystemBase {
     displayMechanism();
   }
 
-  //for sysid and characterization / testing
-  public void applyVoltage(double voltage){
+  // for sysid and characterization / testing
+  public void applyVoltage(double voltage) {
     leftMotor.setVoltage(voltage);
     rightMotor.setVoltage(voltage);
   }
 
-
-  //SYSID COMMANDS
-  public Command sysIdDynamicForward(){
+  // SYSID COMMANDS
+  public Command sysIdDynamicForward() {
     return armRoutine.dynamic(Direction.kForward)
-      .until(() -> getPositionDegrees() >= maxAngle);
+        .until(() -> getPositionDegrees() >= maxAngle);
   }
 
-  public Command sysIdDynamicReverse(){
+  public Command sysIdDynamicReverse() {
     return armRoutine.dynamic(Direction.kReverse)
-      .until(() -> getPositionDegrees() <= minAngle + 20);
+        .until(() -> getPositionDegrees() <= minAngle + 20);
   }
 
-  public Command sysIdQuasistaticForward(){
+  public Command sysIdQuasistaticForward() {
     return armRoutine.quasistatic(Direction.kForward)
-      .until(() -> getPositionDegrees() >= maxAngle);
+        .until(() -> getPositionDegrees() >= maxAngle);
   }
 
-  public Command sysIdQuasistaticReverse(){
+  public Command sysIdQuasistaticReverse() {
     return armRoutine.quasistatic(Direction.kReverse)
-      .until(() -> getPositionDegrees() <= minAngle + 20);
+        .until(() -> getPositionDegrees() <= minAngle + 20);
   }
 }

@@ -10,15 +10,15 @@ import com.playingwithfusion.TimeOfFlight;
 import com.playingwithfusion.TimeOfFlight.RangingMode;
 
 /** Add your docs here. */
-public class DistanceSensorReader implements Runnable{
+public class DistanceSensorReader implements Runnable {
     private int id;
     private final TimeOfFlight rangeSensor;
 
-    /*For Thread Safety */
+    /* For Thread Safety */
     private AtomicReference<Double> rangeSensorValue = new AtomicReference<>();
     private AtomicReference<Boolean> validMeasurment = new AtomicReference<>();
 
-    public DistanceSensorReader(int id){
+    public DistanceSensorReader(int id) {
         this.id = id;
         rangeSensor = new TimeOfFlight(this.id);
         rangeSensor.setRangingMode(RangingMode.Short, 50);
@@ -30,11 +30,11 @@ public class DistanceSensorReader implements Runnable{
         validMeasurment.set(rangeSensor.isRangeValid());
     }
 
-    public double getRange(){
+    public double getRange() {
         return rangeSensorValue.get();
     }
 
-    public boolean isValid(){
+    public boolean isValid() {
         return validMeasurment.get();
     }
 

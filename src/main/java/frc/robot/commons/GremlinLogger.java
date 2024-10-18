@@ -14,10 +14,10 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /** Add your docs here. */
-public class GremlinLogger extends DogLog{
+public class GremlinLogger extends DogLog {
     private static final String PID_KEY = "PID";
 
-    public static void logTalonFX(String motorName, TalonFX motor){
+    public static void logTalonFX(String motorName, TalonFX motor) {
         GremlinLogger.logSD(motorName + "/DeviceID", motor.getDeviceID());
         GremlinLogger.logSD(motorName + "/StatorCurrent", motor.getStatorCurrent().getValueAsDouble());
         GremlinLogger.logSD(motorName + "/SupplyCurrent", motor.getSupplyCurrent().getValueAsDouble());
@@ -25,96 +25,109 @@ public class GremlinLogger extends DogLog{
         GremlinLogger.logSD(motorName + "/OutputVoltage", motor.getMotorVoltage().getValueAsDouble());
         GremlinLogger.logSD(motorName + "/Positon", motor.getPosition().getValueAsDouble());
         GremlinLogger.logSD(motorName + "/RotorPosition", motor.getRotorPosition().getValueAsDouble());
-        GremlinLogger.logSD(motorName +"/TorqueCurrent", motor.getTorqueCurrent().getValueAsDouble());
+        GremlinLogger.logSD(motorName + "/TorqueCurrent", motor.getTorqueCurrent().getValueAsDouble());
         GremlinLogger.logSD(motorName + "/Velocity", motor.getVelocity().getValueAsDouble());
         GremlinLogger.logSD(motorName + "/Temperature", motor.getDeviceTemp().getValueAsDouble());
     }
 
-    public static void logTalonFXPID(String motorName, TalonFX motor){
+    public static void logTalonFXPID(String motorName, TalonFX motor) {
         GremlinLogger.logSD(motorName + PID_KEY + "/Error", motor.getClosedLoopError().getValueAsDouble());
         GremlinLogger.logSD(motorName + PID_KEY + "/TotalOutput", motor.getClosedLoopOutput().getValueAsDouble());
         GremlinLogger.logSD(motorName + PID_KEY + "/Feedforward", motor.getClosedLoopFeedForward().getValueAsDouble());
-        GremlinLogger.logSD(motorName + PID_KEY + "/POutput", motor.getClosedLoopProportionalOutput().getValueAsDouble());
+        GremlinLogger.logSD(motorName + PID_KEY + "/POutput",
+                motor.getClosedLoopProportionalOutput().getValueAsDouble());
         GremlinLogger.logSD(motorName + PID_KEY + "/Ioutput", motor.getClosedLoopIntegratedOutput().getValueAsDouble());
         GremlinLogger.logSD(motorName + PID_KEY + "/DOutput", motor.getClosedLoopDerivativeOutput().getValueAsDouble());
         GremlinLogger.logSD(motorName + PID_KEY + "/Reference", motor.getClosedLoopReference().getValueAsDouble());
     }
 
-    public static void logStdDevs(String path, Vector<N3> stddevs){
+    public static void logStdDevs(String path, Vector<N3> stddevs) {
         GremlinLogger.logSD(path + "/Stddevs/XY", stddevs.getData()[0]);
         GremlinLogger.logSD(path + "/Stddevs/Theta", stddevs.getData()[2]);
     }
 
-    /**Logs a double and also puts it on Smartdashboard
+    /**
+     * Logs a double and also puts it on Smartdashboard
+     * 
      * @param key
      * @param value
      */
-    public static void logSD(String key, double value){
+    public static void logSD(String key, double value) {
         log(key, value);
         SmartDashboard.putNumber(key, value);
     }
 
-     /**Logs a String and also puts it on Smartdashboard
+    /**
+     * Logs a String and also puts it on Smartdashboard
+     * 
      * @param key
      * @param value
      */
-    public static void logSD(String key, String value){
+    public static void logSD(String key, String value) {
         log(key, value);
         SmartDashboard.putString(key, value);
     }
 
-    /**Logs a boolen and also puts it on Smartdashboard
+    /**
+     * Logs a boolen and also puts it on Smartdashboard
+     * 
      * @param key
      * @param value
      */
-    public static void logSD(String key, boolean value){
+    public static void logSD(String key, boolean value) {
         log(key, value);
         SmartDashboard.putBoolean(key, value);
     }
 
-    /**Logs a double array and also puts it on Smartdashboard
+    /**
+     * Logs a double array and also puts it on Smartdashboard
+     * 
      * @param key
      * @param value
      */
-    public static void logSD(String key, double[] value){
+    public static void logSD(String key, double[] value) {
         log(key, value);
         SmartDashboard.putNumberArray(key, value);
     }
 
-    /**Logs a Pose3d and also puts it on Smartdashboard
+    /**
+     * Logs a Pose3d and also puts it on Smartdashboard
+     * 
      * @param key
      * @param value
      */
-    public static void logSD(String key, Pose3d value){
+    public static void logSD(String key, Pose3d value) {
         log(key, value);
-        SmartDashboard.putNumberArray(key, 
-            new double[]{
-                value.getX(),value.getY(),value.getZ(),
-                value.getRotation().getX(),value.getRotation().getY(),value.getRotation().getZ()
-            }
-        );
+        SmartDashboard.putNumberArray(key,
+                new double[] {
+                        value.getX(), value.getY(), value.getZ(),
+                        value.getRotation().getX(), value.getRotation().getY(), value.getRotation().getZ()
+                });
     }
 
-    /**Logs a Pose2d and also puts it on Smartdashboard
+    /**
+     * Logs a Pose2d and also puts it on Smartdashboard
+     * 
      * @param key
      * @param value
-     */ //TODO: not sure if a 3 element array is correct
-    public static void logSD(String key, Pose2d value){
+     */ // TODO: not sure if a 3 element array is correct
+    public static void logSD(String key, Pose2d value) {
         log(key, value);
-        SmartDashboard.putNumberArray(key, 
-            new double[]{
-                value.getX(),
-                value.getY(),
-                value.getRotation().getRadians()
-            }
-        );
+        SmartDashboard.putNumberArray(key,
+                new double[] {
+                        value.getX(),
+                        value.getY(),
+                        value.getRotation().getRadians()
+                });
     }
 
-    /**Logs a double and also puts it on Smartdashboard
+    /**
+     * Logs a double and also puts it on Smartdashboard
+     * 
      * @param key
      * @param value
      */
-    public static void logSD(String key, int value){
+    public static void logSD(String key, int value) {
         log(key, value);
         SmartDashboard.putNumber(key, value);
     }

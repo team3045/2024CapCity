@@ -25,7 +25,7 @@ public class IntakeSubsystem extends SubsystemBase {
   private TalonFX intakeMotorLeft = new TalonFX(leftID, canbus);
   private TalonFX intakeMotorRight = new TalonFX(rightID, canbus);
 
-  private enum IntakeState{
+  private enum IntakeState {
     INTAKING,
     IDLE
   }
@@ -33,16 +33,14 @@ public class IntakeSubsystem extends SubsystemBase {
   private double gearing = 1 / 1.5;
 
   private static final FlywheelSim LEFT_FLYWHEEL_SIM = new FlywheelSim(
-    DCMotor.getKrakenX60(1),
-    1.5,
-    0.1
-  );
+      DCMotor.getKrakenX60(1),
+      1.5,
+      0.1);
 
-   private static final FlywheelSim RIGHT_FLYWHEEL_SIM = new FlywheelSim(
-    DCMotor.getKrakenX60(1),
-    1.5,
-    0.1
-  );
+  private static final FlywheelSim RIGHT_FLYWHEEL_SIM = new FlywheelSim(
+      DCMotor.getKrakenX60(1),
+      1.5,
+      0.1);
 
   private TalonFXSimState leftSimState;
   private TalonFXSimState rightSimState;
@@ -52,15 +50,15 @@ public class IntakeSubsystem extends SubsystemBase {
   /** Creates a new Intake. */
   public IntakeSubsystem() {
     intakeMotorLeft.getConfigurator().apply(
-      new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake)
-        .withInverted(InvertedValue.CounterClockwise_Positive));
+        new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake)
+            .withInverted(InvertedValue.CounterClockwise_Positive));
     intakeMotorRight.getConfigurator().apply(
-      new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake)
-        .withInverted(InvertedValue.CounterClockwise_Positive));
-    
+        new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake)
+            .withInverted(InvertedValue.CounterClockwise_Positive));
+
     state = IntakeState.IDLE;
 
-    if(Utils.isSimulation()){
+    if (Utils.isSimulation()) {
       configSim();
     }
   }
@@ -70,48 +68,46 @@ public class IntakeSubsystem extends SubsystemBase {
     GremlinLogger.logSD(path + "State", state.toString());
   }
 
-  public Command runIntakeMotor(){
+  public Command runIntakeMotor() {
     return this.run(() -> {
       intakeMotorLeft.set(intakeSpeed);
       intakeMotorRight.set(intakeSpeed);
     });
   }
 
-  public Command setIntakingState(){
+  public Command setIntakingState() {
     return this.runOnce(() -> state = IntakeState.INTAKING);
   }
 
-  public Command switchState(){
+  public Command switchState() {
     return this.runOnce(() -> {
-      if(state == IntakeState.INTAKING){
+      if (state == IntakeState.INTAKING) {
         state = IntakeState.IDLE;
         System.out.println("switched to idle");
-      }
-      else if (state == IntakeState.IDLE){
+      } else if (state == IntakeState.IDLE) {
         state = IntakeState.INTAKING;
         System.out.println("switched to intaking");
       }
     });
   }
 
-  public Command setIdleState(){
+  public Command setIdleState() {
     intakeMotorLeft.stopMotor();
     intakeMotorRight.stopMotor();
     return this.runOnce(() -> state = IntakeState.IDLE);
   }
 
-  public void setIdleStateRunnable(){
+  public void setIdleStateRunnable() {
     state = IntakeState.IDLE;
   }
 
-  public void stopRunnable(){
+  public void stopRunnable() {
     intakeMotorLeft.stopMotor();
     intakeMotorRight.stopMotor();
     state = IntakeState.IDLE;
   }
 
-
-  public Command stop(){
+  public Command stop() {
     return this.run(() -> {
       intakeMotorLeft.stopMotor();
       intakeMotorRight.stopMotor();
@@ -125,13 +121,13 @@ public class IntakeSubsystem extends SubsystemBase {
 
     leftSimState.setSupplyVoltage(RobotController.getInputVoltage());
     rightSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    
+
     LEFT_FLYWHEEL_SIM.setState(0);
     RIGHT_FLYWHEEL_SIM.setState(0);
   }
 
   @Override
-  public void simulationPeriodic(){
+  public void simulationPeriodic() {
     leftSimState = intakeMotorLeft.getSimState();
     rightSimState = intakeMotorRight.getSimState();
 
@@ -147,6 +143,6 @@ public class IntakeSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Intake Right Velocity", intakeMotorRight.getVelocity().getValueAsDouble());
   }
 
-  //TRIGGERS
+  // TRIGGERS
   public final Trigger isIntaking = new Trigger(() -> state == IntakeState.INTAKING);
 }

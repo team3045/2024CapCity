@@ -8,7 +8,8 @@ import edu.wpi.first.wpilibj.RobotController;
 public class BreadUtil {
 
   // Private constructor so that the class cannot be instantiated
-  private BreadUtil() {}
+  private BreadUtil() {
+  }
 
   // Returns the angle to the target
   public static Rotation2d getAngleToTarget(
@@ -65,7 +66,8 @@ public class BreadUtil {
 
   // Deadband method
   public static double deadband(double value, double tolerance) {
-    if (Math.abs(value) < tolerance) return 0.0;
+    if (Math.abs(value) < tolerance)
+      return 0.0;
 
     return Math.copySign(value, (value - tolerance) / (1.0 - tolerance));
   }
