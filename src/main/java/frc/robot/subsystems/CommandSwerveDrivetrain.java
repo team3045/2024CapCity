@@ -52,8 +52,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
 
+    public static final double TrueMaxAngularRate = 1.5 * Math.PI;
+
     public static double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
-    public static final double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
+    public static double MaxAngularRate = TrueMaxAngularRate; // 3/4 of a rotation per second max angular velocity
     public static final PIDController HEADING_CONTROLLER = new PIDController(10, 0, 0);
     public static final double rangeTheshold = 3; //3 meters
 
@@ -259,11 +261,17 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
 
     public Command toggleSlowMode(){
-        return Commands.runOnce(() -> MaxSpeed = TunerConstants.kSpeedAt12VoltsMps / 2);
+        return Commands.runOnce(() -> {
+            MaxSpeed = TunerConstants.kSpeedAt12VoltsMps / 2;
+            MaxAngularRate = TrueMaxAngularRate / 2;
+        });
     }
 
     public Command toggleFastMode(){
-        return Commands.runOnce(() -> MaxSpeed = TunerConstants.kSpeedAt12VoltsMps);
+        return Commands.runOnce(() -> {
+            MaxSpeed = TunerConstants.kSpeedAt12VoltsMps;
+            MaxAngularRate = TrueMaxAngularRate;
+        });
     }
 
     private void startSimThread() {
