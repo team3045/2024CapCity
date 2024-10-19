@@ -90,9 +90,8 @@ public class ArmSubsystem extends SubsystemBase {
   private final StructPublisher<Pose3d> pose3dPublisher = armTable.getStructTopic("Arm Pose3d", Pose3d.struct).publish();
 
   //TRIGGERS
-  // Add a trigger for isReady; debounce it so that it doesn't flicker while we're shooting
   // TODO: Consider caching.
-  public final Trigger atTarget = new Trigger(this::atTargetPosition).debounce(atTargetDelay, DebounceType.kFalling);
+  public final Trigger atTarget = new Trigger(this::atTargetPosition);
   public final Trigger atIntake = new Trigger(this::atIntake).debounce(atTargetDelay,DebounceType.kFalling);
 
   //SYSID
@@ -268,7 +267,7 @@ public class ArmSubsystem extends SubsystemBase {
    * 
    * @param targetAngle desired angle of the arm in degrees
    */
-  private void setTarget(double targetAngle){
+  public void setTarget(double targetAngle){
     setpoint = GremlinUtil.clampWithLogs(maxAngle, minAngle, targetAngle);
 
     double gravFeedforward = kG * Math.cos(getPositionRadians());
@@ -306,6 +305,10 @@ public class ArmSubsystem extends SubsystemBase {
    */
   public Command goToAmp(){
     return goToAngle(() -> ampAngle);
+  }
+
+  public Command goToDefaultShot(){
+    return goToAngle(() -> defaultShotAngle);
   }
 
   public Command goToMin(){

@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import static frc.robot.constants.ArmConstants.defaultShotAngle;
+
+import java.util.function.BooleanSupplier;
+
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
@@ -11,7 +15,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commons.GremlinPS4Controller;
+import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
@@ -22,7 +28,7 @@ import frc.robot.vision.GremlinApriltagVision;
 
 public class RobotContainer {
   /* Setting up bindings for necessary control of the swerve drive platform */
-  private final CommandPS4Controller joystick = new CommandPS4Controller(0); // My joystick
+  private final GremlinPS4Controller joystick = new GremlinPS4Controller(0); // My joystick
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
   public final ArmSubsystem arm = new ArmSubsystem();
   public final ShooterSubsytem shooter = new ShooterSubsytem();
@@ -44,12 +50,17 @@ public class RobotContainer {
 
   private final Telemetry logger = new Telemetry(CommandSwerveDrivetrain.MaxSpeed);
 
+
+  private final Command defaultShotCommand = shooter.setRevving()
+      .alongWith(arm.goToDefaultShot())
+      .alongWith(new InstantCommand(() -> shooter.setDefaultShot(true)));
+
   private void configureBindings() {
     drivetrain.setDefaultCommand(
       drivetrain.getDriveCommand(
         () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: REVERSE X AND Y FOR REAL BOT BUT SIM JOYSTICKLS ARE BEING WEIRD
         ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
-        () -> joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate)
+        () -> -joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate)
     );
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -58,20 +69,17 @@ public class RobotContainer {
 
     // reset the field-centric heading on left bumper press
     joystick.L2().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
-
-    joystick.pov(0).whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(0.5).withVelocityY(0)));
-    joystick.pov(180).whileTrue(drivetrain.applyRequest(() -> forwardStraight.withVelocityX(-0.5).withVelocityY(0)));
-
     drivetrain.registerTelemetry(logger::telemeterize);
+
 
 
     /* Bindings for drivetrain characterization */
     /* These bindings require multiple buttons pushed to swap between quastatic and dynamic */
     /* Back/Start select dynamic/quasistatic, Y/X select forward/reverse direction */
-    // joystick.share().and(joystick.triangle()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-    // joystick.share().and(joystick.square()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    // joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-    // joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+    joystick.share().and(joystick.triangle()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    joystick.share().and(joystick.square()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+    joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
     /* Bindings for arm characterization */
     // joystick.share().and(joystick.triangle()).onTrue(arm.sysIdDynamicForward());
@@ -79,17 +87,51 @@ public class RobotContainer {
     // joystick.options().and(joystick.triangle()).onTrue(arm.sysIdQuasistaticForward());
     // joystick.options().and(joystick.square()).onTrue(arm.sysIdQuasistaticReverse());
 
+    /* Bindings for shooter characterization */
+    // joystick.share().and(joystick.triangle()).onTrue(shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // joystick.share().and(joystick.square()).onTrue(shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // joystick.options().and(joystick.triangle()).onTrue(shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // joystick.options().and(joystick.square()).onTrue(shooter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+
     /*Bindings to set State of Shooter*/
 
-    //TODO: Should set the arm to start aiming / tracking target, should have drivetrain start aiming towards target
     //Should have shooters rev, Essentially sets everything up for the later trigger
-    joystick.triangle().toggleOnTrue(
-      shooter.setRevving()
-      .alongWith(
-        drivetrain.aimAtSpeakerMoving(
-          () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: SEE COMMENT ABOVE ON OTHER DRIVE COMMAND
-          ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
-      .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))); 
+    // joystick.triangle().toggleOnTrue(
+    //   shooter.setRevving()
+    //   .alongWith( 
+    //     drivetrain.aimAtSpeakerMoving(
+    //       () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: SEE COMMENT ABOVE ON OTHER DRIVE COMMAND
+    //       ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
+    //   .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
+    //   ); 
+
+    joystick.L2().toggleOnTrueNoInterrupt( //DEFAULT SHOT COMMAND TODO: ADD TURN TO ANGLE
+      defaultShotCommand.finallyDo((interrupted) -> {
+        if(!interrupted){
+          shooter.coastShootersAndIdleRunnable();
+        }
+      })
+    );
+
+    /*Triggers to deal with State of Shooter */
+    (shooter.isRevving.or(shooter.isShooting))
+      .and(shooter.hasNoteBack)
+      .and(shooter.atSpeed)
+      .and(arm.atTarget)
+      .and(drivetrain.withinRange.or(shooter.defaultShotTrigger)) //TODO: add a check that a main "shooter" camera sees the target
+      .whileTrue(
+        shooter.setShooting().andThen(shooter.feedNote())); //TODO: add a cancel so we go back to normal rotation maybe
+
+    shooter.isIdle
+      .onTrue(
+        shooter.coastShootersAndIdle()
+        .andThen(arm.goToMin()));
+    
+      //Once the note is gone we're done shooting so we go idle and coast the shooters
+    shooter.isShooting.and(shooter.hasNoteBack.negate()).whileTrue(
+      shooter.coastShootersAndIdle()
+      .andThen(shooter.stopFeed())
+      .andThen(Commands.print("Stopped After shot")));
 
     joystick.R1().and(shooter.hasNoteBack.negate()).toggleOnTrue( 
         (arm.goToIntake()
@@ -113,22 +155,21 @@ public class RobotContainer {
       );
   
 
-    joystick.L1().onTrue(arm.goToMax());
-    joystick.R2().onTrue(new InstantCommand(() -> arm.findZero()));
+    joystick.L1().OnPressTwice(
+      drivetrain.driveFacingAngleCommand(
+        () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, 
+        ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed, 
+        () -> FieldConstants.ampAngle).alongWith(
+      shooter.setAmp().andThen(arm.goToAmp())), 
+
+      shooter.ampShot().until(shooter.hasNoteBack.negate().and(shooter.hasNoteFront.negate()))
+        .andThen(shooter.stopFeed())
+        .andThen(drivetrain.driveBackFromAmp())
+        .andThen(shooter.coastShootersAndIdle())
+    );
+
     
-    
-    /*Triggers to deal with State of Shooter */
-    shooter.isRevving 
-      .and(shooter.hasNoteFront)
-      .and(shooter.atSpeed)
-      .and(arm.atTarget)
-      .and(drivetrain.withinRange) //TODO: add a check that a main "shooter" camera sees the target
-      .whileTrue(shooter.setShooting().andThen(shooter.feedNote())); //TODO: add a cancel so we go back to normal rotation maybe
-    
-      //Once the note is gone we're done shooting so we go idle and coast the shooters
-    shooter.isShooting.and(shooter.hasNoteFront.negate()).onTrue(
-      shooter.coastShootersAndIdle()
-      .alongWith(arm.goToMin()));  
+    joystick.R2().onTrue(new InstantCommand(() -> arm.findZero()));    
   }
 
   public RobotContainer() {

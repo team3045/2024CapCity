@@ -42,7 +42,8 @@ public class ArmConstants {
     public static final double minAngle = 18.26-90; //degrees
     public static final double maxAngle = 110;
     public static final double intakeAngle = minAngle;
-    public static final double ampAngle = 80;
+    public static final double ampAngle = 47;
+    public static final double defaultShotAngle = -30;
 
     //TOLERANCES
     public static final double angleTolerance = 0.5;

@@ -25,7 +25,7 @@ public class ShooterConstants {
     public static final double backHasNoteThreshold = 90; //mm
     public static final double hasNoteDebounceTime = 0.5; //s
 
-    public static final double shootingVelocity = 10; //rot per seconds
+    public static final double shootingVelocity = 100; //rot per seconds
     public static final double feedingVelocity = 10;
 
     //LOGPATH
@@ -39,12 +39,12 @@ public class ShooterConstants {
     public static final boolean enableSupplyCurrentLimit = true;
 
     //CONTROL LOOP GAINS
-    public static final double kP = 0; 
+    public static final double kP = 0.2; 
     public static final double kI = 0; 
     public static final double kD = 0; 
-    public static final double kV = 0.08; //voltage based on requested velocity
-    public static final double kA = 0.01; //voltage based on requested acceleration
-    public static final double kS = 0; //Voltage to overcome friction
+    public static final double kV = 0.080432; //voltage based on requested velocity
+    public static final double kA = 0.054473 / 3; //voltage based on requested acceleration
+    public static final double kS = 0.17826; //Voltage to overcome friction
 
     //PHYSICS
     public static final double momentOfInertia = GremlinUtil.lbIn2TokgM2(1.169 * 2); //pound inches^2, multiply by two bc two wheels per motor
@@ -54,9 +54,9 @@ public class ShooterConstants {
     public static final double gearing = 1.0 / 1.5; //1 motor rotation = 1.5 flywheel rotations
 
     //VELOCITY AND ACCELERATIOn
-    public static final double maxVel = 10;
-    public static final double maxAccel = 20;
-    public static final double speedErrorTolerance = 1; //rps
+    public static final double maxVel = 0; 
+    public static final double maxAccel = 120;
+    public static final double speedErrorTolerance = 3; //rps
 
     //Motor Configs
     public static final CurrentLimitsConfigs CURRENT_LIMITS_CONFIGS = new CurrentLimitsConfigs()

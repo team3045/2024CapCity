@@ -5,6 +5,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -23,6 +24,8 @@ public class FieldConstants {
 
   public static final Translation2d ampCenter =
       new Translation2d(Units.inchesToMeters(72.455), fieldWidth);
+
+  public static final Rotation2d ampAngle = Rotation2d.fromDegrees(0);
 
   public static final Translation2d passingTarget = new Translation2d(0.81, 7.31);
   public static final Translation2d lowPassingTarget = new Translation2d(2.13, 8.07);

@@ -24,14 +24,17 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -49,7 +52,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
 
-    public static final double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
+    public static double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
     public static final double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
     public static final PIDController HEADING_CONTROLLER = new PIDController(10, 0, 0);
     public static final double rangeTheshold = 3; //3 meters
@@ -71,6 +74,9 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
                                                                // driving in open loop
+
+    private final SwerveRequest.RobotCentric driveBack = new SwerveRequest.RobotCentric()
+        .withVelocityX(MaxSpeed*-0.2);
 
     /* Use one of these sysidroutines for your particular test */
     private SysIdRoutine SysIdRoutineTranslation = new SysIdRoutine(
@@ -108,12 +114,14 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                     this));
 
     /* Change this to the sysid routine you want to test */
-    private final SysIdRoutine RoutineToApply = SysIdRoutineTranslation;
+    private final SysIdRoutine RoutineToApply = SysIdRoutineRotation;
 
     /*Publishing */
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
-    private final NetworkTable armTable = inst.getTable("DrivePose");
-    private final StructPublisher<Pose2d> pose2dPublisher = armTable.getStructTopic("Drive Pose2d", Pose2d.struct).publish();
+    private final NetworkTable driveTable = inst.getTable("DrivePose");
+    private final StructPublisher<Pose2d> pose2dPublisher = driveTable.getStructTopic("Drive Pose2d", Pose2d.struct).publish();
+    private final StructArrayPublisher<SwerveModuleState> swerveStatePublisher = driveTable.getStructArrayTopic("Swerve State", SwerveModuleState.struct).publish();
+    private final StructArrayPublisher<SwerveModuleState> swerveStateTargetPublisher = driveTable.getStructArrayTopic("Swerve State Targets", SwerveModuleState.struct).publish();
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency, SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
@@ -239,10 +247,22 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                     getState().Pose.getRotation().getRadians(), angSupplier.get().getRadians())));
     }
 
+    public Command driveBackFromAmp(){
+        return applyRequest(() -> driveBack).withTimeout(0.2);
+    }
+
     public void addVisionMeasurements(List<TimestampedVisionUpdate> updates){
         for(int i = 0; i < updates.size(); i++){
             addVisionMeasurement(updates.get(i).pose(), updates.get(i).timestamp(), updates.get(i).stdDevs());
         }
+    }
+
+    public Command toggleSlowMode(){
+        return Commands.runOnce(() -> MaxSpeed = TunerConstants.kSpeedAt12VoltsMps / 2);
+    }
+
+    public Command toggleFastMode(){
+        return Commands.runOnce(() -> MaxSpeed = TunerConstants.kSpeedAt12VoltsMps);
     }
 
     private void startSimThread() {
@@ -298,5 +318,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         }
 
         pose2dPublisher.set(getState().Pose);
+        swerveStatePublisher.set(getState().ModuleStates);
+        swerveStateTargetPublisher.set(getState().ModuleTargets);
     }
 }
