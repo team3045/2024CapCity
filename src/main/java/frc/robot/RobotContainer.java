@@ -53,7 +53,7 @@ public class RobotContainer {
   private void configureBindings() {
     drivetrain.setDefaultCommand(
       drivetrain.getDriveCommand(
-        () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: REVERSE X AND Y FOR REAL BOT BUT SIM JOYSTICKLS ARE BEING WEIRD
+        () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, 
         ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
         () -> -joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate)
     );
@@ -68,37 +68,21 @@ public class RobotContainer {
 
     joystick.povDown().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
 
-    /* Bindings for drivetrain characterization */
-    /* These bindings require multiple buttons pushed to swap between quastatic and dynamic */
-    /* Back/Start select dynamic/quasistatic, Y/X select forward/reverse direction */
-    joystick.share().and(joystick.triangle()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-    joystick.share().and(joystick.square()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-    joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-
-    /* Bindings for arm characterization */
-    // joystick.share().and(joystick.triangle()).onTrue(arm.sysIdDynamicForward());
-    // joystick.share().and(joystick.square()).onTrue(arm.sysIdDynamicReverse());
-    // joystick.options().and(joystick.triangle()).onTrue(arm.sysIdQuasistaticForward());
-    // joystick.options().and(joystick.square()).onTrue(arm.sysIdQuasistaticReverse());
-
-    /* Bindings for shooter characterization */
-    // joystick.share().and(joystick.triangle()).onTrue(shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    // joystick.share().and(joystick.square()).onTrue(shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    // joystick.options().and(joystick.triangle()).onTrue(shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    // joystick.options().and(joystick.square()).onTrue(shooter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-
     /*Bindings to set State of Shooter*/
-
     //Should have shooters rev, Essentially sets everything up for the later trigger
-    // joystick.triangle().toggleOnTrue(
-    //   shooter.setRevving()
-    //   .alongWith( 
-    //     drivetrain.aimAtSpeakerMoving(
-    //       () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, //TODO: SEE COMMENT ABOVE ON OTHER DRIVE COMMAND
-    //       ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
-    //   .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
-    //   ); 
+    joystick.triangle().toggleOnTrueNoInterrupt(
+      shooter.setRevving()
+      .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
+      .alongWith( 
+        drivetrain.aimAtSpeakerMoving(
+          () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, 
+          ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
+      .finallyDo((interrupted) -> {
+        if(!interrupted){
+            shooter.coastShootersAndIdleRunnable();
+        }
+      })
+    ); 
 
     joystick.L2().toggleOnTrueNoInterrupt( //DEFAULT SHOT COMMAND TODO: ADD TURN TO ANGLE
       defaultShotCommand.finallyDo((interrupted) -> {
@@ -122,12 +106,13 @@ public class RobotContainer {
         shooter.coastShootersAndIdle()
         .andThen(arm.goToMin()));
     
-      //Once the note is gone we're done shooting so we go idle and coast the shooters
+    //Once the note is gone we're done shooting so we go idle and coast the shooters
     shooter.isShooting.and(shooter.hasNoteBack.negate()).whileTrue(
       shooter.coastShootersAndIdle()
       .andThen(shooter.stopFeed())
       .andThen(Commands.print("Stopped After shot")));
 
+     /*Intake Bindings */ 
     joystick.R1().and(shooter.hasNoteBack.negate()).toggleOnTrue( 
         (arm.goToIntake()
           .andThen(Commands.waitUntil(arm.atIntake))
@@ -140,6 +125,7 @@ public class RobotContainer {
         )
     );
 
+    /*Trigger to deal with Intake state */
     intake.isIntaking
       .and(shooter.hasNoteBack)
       .onTrue(
@@ -149,7 +135,6 @@ public class RobotContainer {
         .andThen(shooter.runForwardSlow().until(shooter.hasNoteFront.negate()))
       );
   
-
     joystick.L1().OnPressTwice(
       drivetrain.driveFacingAngleCommand(
         () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, 
@@ -163,8 +148,27 @@ public class RobotContainer {
         .andThen(shooter.coastShootersAndIdle())
     );
 
-    
     joystick.R2().onTrue(new InstantCommand(() -> arm.findZero()));    
+
+    /* Bindings for drivetrain characterization */
+    /* These bindings require multiple buttons pushed to swap between quastatic and dynamic */
+    /* Back/Start select dynamic/quasistatic, Y/X select forward/reverse direction */
+    joystick.share().and(joystick.triangle()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    joystick.share().and(joystick.square()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+    joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+
+    /* Bindings for arm characterization */
+    // joystick.share().and(joystick.triangle()).onTrue(arm.sysIdDynamicForward());
+    // joystick.share().and(joystick.square()).onTrue(arm.sysIdDynamicReverse());
+    // joystick.options().and(joystick.triangle()).onTrue(arm.sysIdQuasistaticForward());
+    // joystick.options().and(joystick.square()).onTrue(arm.sysIdQuasistaticReverse());
+
+    /* Bindings for shooter characterization */
+    // joystick.share().and(joystick.triangle()).onTrue(shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // joystick.share().and(joystick.square()).onTrue(shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // joystick.options().and(joystick.triangle()).onTrue(shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // joystick.options().and(joystick.square()).onTrue(shooter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
   }
 
   public RobotContainer() {
@@ -173,10 +177,7 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     /* First put the drivetrain into auto run mode, then run the auto */
-    //return runAuto;
+    return runAuto;
 
-
-    return arm.increaseAngle().repeatedly().withTimeout(5)
-      .andThen(arm.decreaseAngle().repeatedly().withTimeout(5));
   }
 }
