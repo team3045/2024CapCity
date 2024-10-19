@@ -7,7 +7,6 @@ package frc.robot.commons;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 
 /**
  * A version of {@link PS4Controller} with {@link GremlinTrigger} factories for command-based.
@@ -15,7 +14,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
  * @see PS4Controller
  */
 @SuppressWarnings("MethodName")
-public class GremlinPS4Controller extends CommandGenericHID {
+public class GremlinPS4Controller extends GremlinCommandGenericHID {
   private final PS4Controller m_hid;
 
   /**

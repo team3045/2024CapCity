@@ -79,6 +79,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         .withVelocityX(MaxSpeed*-0.2);
 
     /* Use one of these sysidroutines for your particular test */
+    @SuppressWarnings("unused")
     private SysIdRoutine SysIdRoutineTranslation = new SysIdRoutine(
             new SysIdRoutine.Config(
                     null,

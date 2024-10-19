@@ -4,12 +4,8 @@
 
 package frc.robot;
 
-import static frc.robot.constants.ArmConstants.defaultShotAngle;
-
-import java.util.function.BooleanSupplier;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -41,7 +37,6 @@ public class RobotContainer {
     updates -> drivetrain.addVisionMeasurements(updates));
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-  private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
   /* Path follower */
@@ -71,7 +66,7 @@ public class RobotContainer {
     joystick.L2().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
     drivetrain.registerTelemetry(logger::telemeterize);
 
-
+    joystick.povDown().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
 
     /* Bindings for drivetrain characterization */
     /* These bindings require multiple buttons pushed to swap between quastatic and dynamic */
