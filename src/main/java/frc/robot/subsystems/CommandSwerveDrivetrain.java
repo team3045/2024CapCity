@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.constants.DriveConstants.*;
 
 import java.util.function.DoubleSupplier;
 import java.util.List;
@@ -52,10 +53,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
 
-    public static double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
-    public static final double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
-    public static final PIDController HEADING_CONTROLLER = new PIDController(10, 0, 0);
-    public static final double rangeTheshold = 3; //3 meters
+
+    public static final PIDController HEADING_CONTROLLER = new PIDController(headingP, headingI, headingD);
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -71,12 +70,12 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private final SwerveRequest.SysIdSwerveSteerGains SteerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
 
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+      .withDeadband(TrueMaxSpeed * 0.1).withRotationalDeadband(TrueMaxAngularRate * 0.1) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
                                                                // driving in open loop
 
     private final SwerveRequest.RobotCentric driveBack = new SwerveRequest.RobotCentric()
-        .withVelocityX(MaxSpeed*-0.2);
+        .withVelocityX(TrueMaxSpeed*-0.2);
 
     /* Use one of these sysidroutines for your particular test */
     @SuppressWarnings("unused")
@@ -259,11 +258,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
 
     public Command toggleSlowMode(){
-        return Commands.runOnce(() -> MaxSpeed = TunerConstants.kSpeedAt12VoltsMps / 2);
+        return Commands.runOnce(() -> appliedMaxSpeed = TunerConstants.kSpeedAt12VoltsMps / 2);
     }
 
     public Command toggleFastMode(){
-        return Commands.runOnce(() -> MaxSpeed = TunerConstants.kSpeedAt12VoltsMps);
+        return Commands.runOnce(() -> appliedMaxSpeed = TunerConstants.kSpeedAt12VoltsMps);
     }
 
     private void startSimThread() {

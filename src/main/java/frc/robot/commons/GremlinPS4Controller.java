@@ -341,6 +341,15 @@ public class GremlinPS4Controller extends GremlinCommandGenericHID {
   }
 
   /**
+   * Get the X axis value of left side of the controller times negative one.
+   *
+   * @return the axis value times negative one.
+   */
+  public double getLeftXReversed() {
+    return m_hid.getLeftX() * -1;
+  }
+
+  /**
    * Get the X axis value of right side of the controller.
    *
    * @return the axis value.
@@ -350,12 +359,30 @@ public class GremlinPS4Controller extends GremlinCommandGenericHID {
   }
 
   /**
+   * Get the X axis value of right side of the controller times negative one.
+   *
+   * @return the axis value times negative one.
+   */
+  public double getRightXReversed() {
+    return m_hid.getRightX() * -1;
+  }
+
+  /**
    * Get the Y axis value of left side of the controller.
    *
    * @return the axis value.
    */
   public double getLeftY() {
     return m_hid.getLeftY();
+  }
+
+  /**
+   * Get the Y axis value of left side of the controller times negative one.
+   *
+   * @return the axis value times negative one.
+   */
+  public double getLeftYReversed(){
+    return m_hid.getLeftY() * -1;
   }
 
   /**
