@@ -12,7 +12,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.DriveMaintainingHeading;
 import frc.robot.commons.GremlinPS4Controller;
+import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
@@ -43,20 +45,19 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private Command runAuto = drivetrain.getAutoPath("Tests");
 
-  private final Telemetry logger = new Telemetry(CommandSwerveDrivetrain.MaxSpeed);
+  private final Telemetry logger = new Telemetry(DriveConstants.TrueMaxSpeed);
 
 
+  /*Commands */
   private final Command defaultShotCommand = shooter.setRevving()
       .alongWith(arm.goToDefaultShot())
       .alongWith(new InstantCommand(() -> shooter.setDefaultShot(true)));
+  
+  private final DriveMaintainingHeading driveCommand = new DriveMaintainingHeading(
+    drivetrain, joystick::getLeftYReversed, joystick::getLeftXReversed, joystick::getRightXReversed);
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand(
-      drivetrain.getDriveCommand(
-        () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, 
-        ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed,
-        () -> -joystick.getRightX() * CommandSwerveDrivetrain.MaxAngularRate)
-    );
+    drivetrain.setDefaultCommand(driveCommand);
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
     joystick.circle().whileTrue(drivetrain
@@ -75,8 +76,8 @@ public class RobotContainer {
       .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
       .alongWith( 
         drivetrain.aimAtSpeakerMoving(
-          () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, 
-          ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed))
+          () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+          ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
       .finallyDo((interrupted) -> {
         if(!interrupted){
             shooter.coastShootersAndIdleRunnable();
@@ -137,8 +138,8 @@ public class RobotContainer {
   
     joystick.L1().OnPressTwice(
       drivetrain.driveFacingAngleCommand(
-        () -> -joystick.getLeftY() * CommandSwerveDrivetrain.MaxSpeed, 
-        ()-> -joystick.getLeftX() * CommandSwerveDrivetrain.MaxSpeed, 
+        () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+        ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed, 
         () -> FieldConstants.ampAngle).alongWith(
       shooter.setAmp().andThen(arm.goToAmp())), 
 

@@ -19,6 +19,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import com.ctre.phoenix6.Utils;
 
 import static frc.robot.constants.FieldConstants.aprilTags;
+import static frc.robot.constants.FieldConstants.shopLayout;
 import static frc.robot.constants.VisionConstants.CAMERA_LOG_PATH;
 import static frc.robot.constants.VisionConstants.EXCLUDED_TAG_IDS;
 import static frc.robot.constants.VisionConstants.MAX_AMBIGUITY;
@@ -50,6 +51,8 @@ public class GremlinApriltagVision extends SubsystemBase {
   private PhotonCameraSim[] simCameras;
   private VisionSystemSim visionSystemSim;
   private SimCameraProperties[] simCameraProperties;
+
+  private static final AprilTagFieldLayout LAYOUT = FieldConstants.isShopField ? shopLayout : aprilTags;
 
   //Will be the function in drivetrain that adds vision estimate to pose estimation
   private Consumer<List<TimestampedVisionUpdate>> visionConsumer = (visionUpdates) -> {};
@@ -116,7 +119,7 @@ public class GremlinApriltagVision extends SubsystemBase {
 
         // Populate array of tag poses with tags used
         for (int id : unprocessedResult.getMultiTagResult().fiducialIDsUsed) {
-          tagPose3ds.add(aprilTags.getTagPose(id).get());
+          tagPose3ds.add(LAYOUT.getTagPose(id).get());
           //TODO: add logs of each tag here
         }
 
@@ -127,7 +130,7 @@ public class GremlinApriltagVision extends SubsystemBase {
         //We dont like some tags
         if(EXCLUDED_TAG_IDS.contains(target.getFiducialId())) continue;
 
-        Pose3d tagPose = aprilTags.getTagPose(target.getFiducialId()).get();
+        Pose3d tagPose = LAYOUT.getTagPose(target.getFiducialId()).get();
 
         Pose3d bestCamPose = tagPose.transformBy(target.getBestCameraToTarget().inverse());
         Pose3d altCamPose = tagPose.transformBy(target.getAlternateCameraToTarget().inverse());

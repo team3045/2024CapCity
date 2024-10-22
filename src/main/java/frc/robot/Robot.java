@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import java.util.Optional;
+
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -16,6 +20,8 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
   private double disableStartTime = 0;
 
+  private static boolean hasGottenTeamColor = false;
+  private static Alliance allianceColor = Alliance.Blue;
 
   @Override
   public void robotInit() {
@@ -27,6 +33,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+    checkAllianceColor();
   }
 
   @Override
@@ -87,4 +94,21 @@ public class Robot extends TimedRobot {
 
   @Override
   public void simulationPeriodic() {}
+
+  public static boolean isRedAlliance() {
+        return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().equals(Optional.of(Alliance.Red));
+  }
+
+  public static void checkAllianceColor(){
+     /* Periodically try to apply the operator perspective */
+        /* If we haven't applied the operator perspective before, then we should apply it regardless of DS state */
+        /* This allows us to correct the perspective in case the robot code restarts mid-match */
+        /* Otherwise, only check and apply the operator perspective if the DS is disabled */
+        /* This ensures driving behavior doesn't change until an explicit disable event occurs during testing*/
+        if (!hasGottenTeamColor || DriverStation.isDisabled()) {
+          DriverStation.getAlliance().ifPresent((alliance) -> {
+              allianceColor = alliance;
+          });
+      }
+  }
 }
