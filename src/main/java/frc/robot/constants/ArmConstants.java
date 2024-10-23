@@ -43,7 +43,7 @@ public class ArmConstants {
     public static final double maxAngle = 110;
     public static final double intakeAngle = minAngle;
     public static final double ampAngle = 47;
-    public static final double defaultShotAngle = -30;
+    public static final double defaultShotAngle = -27;
 
     //TOLERANCES
     public static final double angleTolerance = 0.5;
@@ -81,7 +81,7 @@ public class ArmConstants {
     public static final InvertedValue rightInverted = InvertedValue.CounterClockwise_Positive;
 
     //Velocity and Acceleration
-    public static final double targetAcceleration = 3; //Rot per Sec^2, This is mostly going to be your max workable acceleration
+    public static final double targetAcceleration = 2; //Rot per Sec^2, This is mostly going to be your max workable acceleration
     public static final double targetVelocity = 1; //Rot per Sec, This is mostly going to be max workable Velocity
 
     //Control Loop Gains

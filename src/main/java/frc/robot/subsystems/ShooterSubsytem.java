@@ -203,7 +203,7 @@ public class ShooterSubsytem extends SubsystemBase {
       // MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(feedingVelocity)
       //   .withSlot(0).withUpdateFreqHz(50);
       // feedMotor.setControl(request);
-      feedMotor.set(0.9);
+      feedMotor.set(0.95);
     }).withName("Feeding Note");
   }
 
@@ -242,6 +242,10 @@ public class ShooterSubsytem extends SubsystemBase {
     return this.runOnce(() -> {
       feedMotor.stopMotor();
     }).withName("stopping feed");
+  }
+
+  public void stopFeedRunnable(){
+      feedMotor.stopMotor();
   }
 
   public void stopAll(){

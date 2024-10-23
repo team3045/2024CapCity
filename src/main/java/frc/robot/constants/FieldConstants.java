@@ -182,7 +182,10 @@ public class FieldConstants {
     public static final double shop6Z = 1.5859125;
     public static final double shop2Y = 3.819525;
     public static final double shop2Z = 2.3320375;
-    public static final double wallOffset = speakerZ + (shop2Z - shop7Z);
+    public static final double wallOffset = -0.00635;
+    public static final double tempX = speakerX + speakerToWall + wallOffset;
+    public static final double tempY = speakerY + (shop7Y-shop2Y);
+    public static final double tempZ = speakerZ + (shop6Z - shop7Z);
     public static final AprilTagFieldLayout shopLayout = new AprilTagFieldLayout(
         List.of(
             new AprilTag(

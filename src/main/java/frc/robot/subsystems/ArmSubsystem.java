@@ -88,6 +88,7 @@ public class ArmSubsystem extends SubsystemBase {
   private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
   private final NetworkTable armTable = inst.getTable("Positioner");
   private final StructPublisher<Pose3d> pose3dPublisher = armTable.getStructTopic("Arm Pose3d", Pose3d.struct).publish();
+  private double smartdashboardNumber = 0;
 
   //TRIGGERS
   // TODO: Consider caching.
@@ -139,6 +140,8 @@ public class ArmSubsystem extends SubsystemBase {
     if(Utils.isSimulation()){
       configSim();
     }
+
+    SmartDashboard.putNumber(path + "smartdashoardAngle", getPositionDegrees());
   }
 
   /**
@@ -197,6 +200,11 @@ public class ArmSubsystem extends SubsystemBase {
 
   public double getVelocityRotPerSec(){
     return getVelocityDegPerSec() / 360;
+  }
+
+  public double getSmartdashboardNumber(){
+    smartdashboardNumber = SmartDashboard.getNumber(path + "smartdashoardAngle", getPositionDegrees());
+    return smartdashboardNumber;
   }
 
   /**

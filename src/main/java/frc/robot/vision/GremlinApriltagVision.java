@@ -130,6 +130,8 @@ public class GremlinApriltagVision extends SubsystemBase {
         //We dont like some tags
         if(EXCLUDED_TAG_IDS.contains(target.getFiducialId())) continue;
 
+        if(LAYOUT.getTagPose(target.getFiducialId()).isEmpty()) continue;
+
         Pose3d tagPose = LAYOUT.getTagPose(target.getFiducialId()).get();
 
         Pose3d bestCamPose = tagPose.transformBy(target.getBestCameraToTarget().inverse());
@@ -158,6 +160,7 @@ public class GremlinApriltagVision extends SubsystemBase {
         singleTagAdjustment = SingleTagAdjusters.getAdjustmentForTag(target.getFiducialId());
 
         GremlinLogger.logSD(logPath + "/CameraPose (SingleTag)", cameraPose);
+        GremlinLogger.logSD(logPath + "/Transform (Single Tag)", target.getBestCameraToTarget().inverse());
       }
 
       if(cameraPose == null || calculatedRobotPose == null) continue;

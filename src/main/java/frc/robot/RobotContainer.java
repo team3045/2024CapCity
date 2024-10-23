@@ -6,6 +6,7 @@ package frc.robot;
 
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -44,6 +45,7 @@ public class RobotContainer {
   /* Path follower */
   @SuppressWarnings("unused")
   private Command runAuto = drivetrain.getAutoPath("Tests");
+  private Command seedMiddlePosition = drivetrain.runOnce(() -> drivetrain.seedFieldRelative(PathPlannerAuto.getStaringPoseFromAutoFile("Start Middle")));
 
   private final Telemetry logger = new Telemetry(DriveConstants.TrueMaxSpeed);
 
@@ -64,31 +66,45 @@ public class RobotContainer {
         .applyRequest(() -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
     // reset the field-centric heading on left bumper press
-    joystick.L2().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
+    //joystick.L2().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
     drivetrain.registerTelemetry(logger::telemeterize);
 
     joystick.povDown().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
 
     /*Bindings to set State of Shooter*/
     //Should have shooters rev, Essentially sets everything up for the later trigger
+    // joystick.triangle().toggleOnTrueNoInterrupt(
+    //   shooter.setRevving()
+    //   .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
+    //   .alongWith( 
+    //     drivetrain.aimAtSpeakerMoving(
+    //       () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+    //       ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
+    //   .finallyDo((interrupted) -> {
+    //     if(!interrupted){
+    //         shooter.coastShootersAndIdleRunnable();
+    //     }
+    //   })
+    // ); 
+
     joystick.triangle().toggleOnTrueNoInterrupt(
       shooter.setRevving()
       .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
-      .alongWith( 
-        drivetrain.aimAtSpeakerMoving(
-          () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
-          ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
+      // .alongWith(drivetrain.aimAtSpeakerMoving(
+      //   () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+      //   ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
       .finallyDo((interrupted) -> {
         if(!interrupted){
-            shooter.coastShootersAndIdleRunnable();
+          shooter.coastShootersAndIdleRunnable();
+          shooter.stopFeedRunnable();
         }
-      })
-    ); 
+      }));
 
     joystick.L2().toggleOnTrueNoInterrupt( //DEFAULT SHOT COMMAND TODO: ADD TURN TO ANGLE
       defaultShotCommand.finallyDo((interrupted) -> {
         if(!interrupted){
           shooter.coastShootersAndIdleRunnable();
+          shooter.stopFeedRunnable();
         }
       })
     );
@@ -178,7 +194,7 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     /* First put the drivetrain into auto run mode, then run the auto */
-    return runAuto;
+    return seedMiddlePosition;
 
   }
 }
