@@ -213,6 +213,14 @@ public class ShooterSubsytem extends SubsystemBase {
       mState = ShooterState.INTAKING;
     });
   }
+
+  public Command intakeAndRevShooters(){
+    return this.run(() -> {
+      feedMotor.set(0.1);
+      mState = ShooterState.INTAKING;
+      setShooterSpeed(shootingVelocity);
+    }).withName("Intaking while revving shooter motors");
+  }
   
   public void stopIntaking(){
       feedMotor.set(0);

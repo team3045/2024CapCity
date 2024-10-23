@@ -6,6 +6,7 @@ package frc.robot;
 
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -184,4 +185,20 @@ public class RobotContainer {
     return seedMiddlePosition;
 
   }
+
+  /*Auto Commands */
+  public final Command intakeWithRev = 
+    (arm.goToIntake().andThen(Commands.waitUntil(arm.atIntake)).andThen(intake.setIntakingState())
+    .andThen(intake.runIntakeMotor())).alongWith(shooter.intakeAndRevShooters()).until(shooter.hasNoteBack);
+
+  public final Command aimAndShoot = 
+    arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving())
+    .andThen(Commands.waitUntil(arm.atTarget)).andThen(shooter.feedNote());
+
+  public final Command intakeThenShoot = intakeWithRev
+    .andThen(shooter.setShooting().alongWith(shooter.feedNote()));
+
+  public void registerNamedCommands(){
+    NamedCommands.registerCommand("intakeThenShoot", intakeThenShoot);
+  } 
 }
