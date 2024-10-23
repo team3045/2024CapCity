@@ -131,6 +131,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             startSimThread();
             seedFieldRelative(new Pose2d(0,0,Rotation2d.fromDegrees(0)));
         }
+        HEADING_CONTROLLER.enableContinuousInput(-Math.PI, Math.PI);
     }
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
@@ -140,6 +141,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             startSimThread();
             seedFieldRelative(new Pose2d(0,0,Rotation2d.fromDegrees(0)));
         }
+        HEADING_CONTROLLER.enableContinuousInput(-Math.PI, Math.PI);
     }
 
     private void configurePathPlanner() {
@@ -195,15 +197,16 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         Translation2d fieldRobotSpeeds = new Translation2d(
             getState().speeds.vxMetersPerSecond, 
             getState().speeds.vyMetersPerSecond);
-        
+
         /*Predict where target will be based on our current speeds */
         Translation2d virtualTarget = target.getTranslation()
-            .plus(
-                fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
-                .rotateBy(Rotation2d.fromDegrees(180.0)
-                ));
+            .plus(fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime));
 
         Translation2d targetRelativeToRobot = virtualTarget.minus(robotPose.getTranslation());
+
+        if(fieldRobotSpeeds.getNorm() > 3){ //To prevent constant setpoint changing at high speeds
+            return getState().Pose.getRotation();
+        }
 
         return new Rotation2d(targetRelativeToRobot.getX(), targetRelativeToRobot.getY());
     }

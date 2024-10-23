@@ -6,10 +6,12 @@ package frc.robot;
 
 import java.util.Optional;
 
+import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.ArmAngles;
@@ -93,7 +95,14 @@ public class Robot extends TimedRobot {
   public void testExit() {}
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+    DriverStationSim.setAllianceStationId(AllianceStationID.Blue1);
+  }
+
+  @Override
+  public void simulationInit(){
+    DriverStationSim.setAllianceStationId(AllianceStationID.Blue1);
+  }
 
   public static boolean isRedAlliance() {
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().equals(Optional.of(Alliance.Red));

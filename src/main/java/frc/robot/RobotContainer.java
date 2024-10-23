@@ -44,7 +44,7 @@ public class RobotContainer {
 
   /* Path follower */
   @SuppressWarnings("unused")
-  private Command runAuto = drivetrain.getAutoPath("Tests");
+  //private Command runAuto = drivetrain.getAutoPath("Tests");
   private Command seedMiddlePosition = drivetrain.runOnce(() -> drivetrain.seedFieldRelative(PathPlannerAuto.getStaringPoseFromAutoFile("Start Middle")));
 
   private final Telemetry logger = new Telemetry(DriveConstants.TrueMaxSpeed);
@@ -54,6 +54,18 @@ public class RobotContainer {
   private final Command defaultShotCommand = shooter.setRevving()
       .alongWith(arm.goToDefaultShot())
       .alongWith(new InstantCommand(() -> shooter.setDefaultShot(true)));
+
+  private final Command autoAimShotCommand = shooter.setRevving()
+    .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
+    .alongWith(drivetrain.aimAtSpeakerMoving(
+      () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+      ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
+    .finallyDo((interrupted) -> {
+      if(!interrupted){
+        shooter.coastShootersAndIdleRunnable();
+        shooter.stopFeedRunnable();
+      }
+    });
   
   private final DriveMaintainingHeading driveCommand = new DriveMaintainingHeading(
     drivetrain, joystick::getLeftYReversed, joystick::getLeftXReversed, joystick::getRightXReversed);
@@ -73,32 +85,7 @@ public class RobotContainer {
 
     /*Bindings to set State of Shooter*/
     //Should have shooters rev, Essentially sets everything up for the later trigger
-    // joystick.triangle().toggleOnTrueNoInterrupt(
-    //   shooter.setRevving()
-    //   .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
-    //   .alongWith( 
-    //     drivetrain.aimAtSpeakerMoving(
-    //       () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
-    //       ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
-    //   .finallyDo((interrupted) -> {
-    //     if(!interrupted){
-    //         shooter.coastShootersAndIdleRunnable();
-    //     }
-    //   })
-    // ); 
-
-    joystick.triangle().toggleOnTrueNoInterrupt(
-      shooter.setRevving()
-      .alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
-      // .alongWith(drivetrain.aimAtSpeakerMoving(
-      //   () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
-      //   ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
-      .finallyDo((interrupted) -> {
-        if(!interrupted){
-          shooter.coastShootersAndIdleRunnable();
-          shooter.stopFeedRunnable();
-        }
-      }));
+    joystick.triangle().toggleOnTrueNoInterrupt(autoAimShotCommand);
 
     joystick.L2().toggleOnTrueNoInterrupt( //DEFAULT SHOT COMMAND TODO: ADD TURN TO ANGLE
       defaultShotCommand.finallyDo((interrupted) -> {
