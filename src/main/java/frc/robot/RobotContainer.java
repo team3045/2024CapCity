@@ -69,7 +69,7 @@ public class RobotContainer {
     });
   
   private final DriveMaintainingHeading driveCommand = new DriveMaintainingHeading(
-    drivetrain, joystick::getLeftYReversed, joystick::getLeftXReversed, joystick::getRightXReversed);
+    drivetrain, joystick::getLeftYReversed, joystick::getLeftXReversed, joystick::getRightXReversed, true);
 
   private void configureBindings() {
     drivetrain.setDefaultCommand(driveCommand);

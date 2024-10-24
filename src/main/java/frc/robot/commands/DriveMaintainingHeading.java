@@ -42,7 +42,7 @@ public class DriveMaintainingHeading extends Command {
 
   /** Creates a new DriveMaintainingHeading. */
   public DriveMaintainingHeading(CommandSwerveDrivetrain drivetrain, 
-    DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier vOmega) {
+    DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier vOmega, boolean squareInputs) {
   
       this.drivetrain = drivetrain;
       this.vX = vX;
@@ -62,8 +62,11 @@ public class DriveMaintainingHeading extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double xSpeed = vX.getAsDouble() * MaxSpeed;
-    double ySpeed = vY.getAsDouble() * MaxSpeed;
+    double vXInput = Math.copySign(vX.getAsDouble() * vX.getAsDouble(), vX.getAsDouble());
+    double vYInput = Math.copySign(vY.getAsDouble() * vY.getAsDouble(), vY.getAsDouble());
+
+    double xSpeed = vXInput * MaxSpeed;
+    double ySpeed = vYInput * MaxSpeed;
     double rotSpeedFieldFrame = vOmega.getAsDouble();
     double xFieldFrame = Robot.isRedAlliance() ? -xSpeed : xSpeed;
     double yFieldFrame = Robot.isRedAlliance() ? -ySpeed : ySpeed;
