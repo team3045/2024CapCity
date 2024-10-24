@@ -34,11 +34,12 @@ public class RobotContainer {
   public final ShooterSubsytem shooter = new ShooterSubsytem();
   public final IntakeSubsystem intake = new IntakeSubsystem();
 
+
   /*Vision System */
   public final GremlinApriltagVision apriltagVision = new GremlinApriltagVision(
     VisionConstants.cameras, 
     () -> drivetrain.getState().Pose, 
-    updates -> drivetrain.addVisionMeasurements(updates));
+    drivetrain::addVisionMeasurements);
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -79,14 +80,13 @@ public class RobotContainer {
         .applyRequest(() -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
     // reset the field-centric heading on left bumper press
-    //joystick.L2().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
     drivetrain.registerTelemetry(logger::telemeterize);
 
-    joystick.povDown().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
+    joystick.R2().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
 
     /*Bindings to set State of Shooter*/
     //Should have shooters rev, Essentially sets everything up for the later trigger
-    joystick.triangle().toggleOnTrueNoInterrupt(autoAimShotCommand);
+    joystick.L1().toggleOnTrueNoInterrupt(autoAimShotCommand);
 
     joystick.L2().toggleOnTrueNoInterrupt( //DEFAULT SHOT COMMAND TODO: ADD TURN TO ANGLE
       defaultShotCommand.finallyDo((interrupted) -> {
@@ -140,7 +140,7 @@ public class RobotContainer {
         .andThen(shooter.runForwardSlow().until(shooter.hasNoteFront.negate()))
       );
   
-    joystick.L1().OnPressTwice(
+    joystick.triangle().OnPressTwice(
       drivetrain.driveFacingAngleCommand(
         () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
         ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed, 
@@ -153,15 +153,15 @@ public class RobotContainer {
         .andThen(shooter.coastShootersAndIdle())
     );
 
-    joystick.R2().onTrue(new InstantCommand(() -> arm.findZero()));    
+    joystick.povDown().onTrue(new InstantCommand(() -> arm.findZero()));    
 
     /* Bindings for drivetrain characterization */
     /* These bindings require multiple buttons pushed to swap between quastatic and dynamic */
     /* Back/Start select dynamic/quasistatic, Y/X select forward/reverse direction */
-    joystick.share().and(joystick.triangle()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-    joystick.share().and(joystick.square()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-    joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+    // joystick.share().and(joystick.triangle()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    // joystick.share().and(joystick.square()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    // joystick.options().and(joystick.triangle()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+    // joystick.options().and(joystick.square()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
     /* Bindings for arm characterization */
     // joystick.share().and(joystick.triangle()).onTrue(arm.sysIdDynamicForward());
@@ -177,13 +177,13 @@ public class RobotContainer {
   }
 
   public RobotContainer() {
+    registerNamedCommands();
     configureBindings();
   }
 
   public Command getAutonomousCommand() {
     /* First put the drivetrain into auto run mode, then run the auto */
-    return seedMiddlePosition;
-
+    return Robot.autoChooser.getSelected();
   }
 
   /*Auto Commands */
@@ -191,14 +191,24 @@ public class RobotContainer {
     (arm.goToIntake().andThen(Commands.waitUntil(arm.atIntake)).andThen(intake.setIntakingState())
     .andThen(intake.runIntakeMotor())).alongWith(shooter.intakeAndRevShooters()).until(shooter.hasNoteBack);
 
-  public final Command aimAndShoot = 
+  public final Command intakeAuto = 
+    arm.goToIntake().andThen(Commands.waitUntil(arm.atIntake)).andThen(intake.setIntakingState())
+    .andThen(intake.runIntakeMotor()).alongWith(shooter.startIntaking()).until(shooter.hasNoteBack);
+
+  public final Command aimAndFeed = 
     arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving())
     .andThen(Commands.waitUntil(arm.atTarget)).andThen(shooter.feedNote());
 
-  public final Command intakeThenShoot = intakeWithRev
-    .andThen(shooter.setShooting().alongWith(shooter.feedNote()));
+  // public final Command intakeThenShoot = intakeWithRev
+  //   .andThen(shooter.setShooting().andThen(shooter.feedNote()));
 
   public void registerNamedCommands(){
-    NamedCommands.registerCommand("intakeThenShoot", intakeThenShoot);
+    // NamedCommands.registerCommand("intakeThenShoot", intakeThenShoot);
+    NamedCommands.registerCommand("intakeAndStop", intakeAuto.andThen(new InstantCommand(() -> shooter.stopIntaking()).alongWith(intake.stop())));
+    NamedCommands.registerCommand("shootAim", shooter.setRevving().until(shooter.atSpeed)
+      .andThen(aimAndFeed.until(shooter.hasNoteBack.negate())));
+    NamedCommands.registerCommand("preload", 
+      shooter.setRevving().alongWith(arm.goToDefaultShot()).until(arm.atTarget).andThen(shooter.feedNote().until(shooter.hasNoteBack.negate())
+      .andThen(arm.goToIntake().until(arm.atIntake).withTimeout(2))));
   } 
 }

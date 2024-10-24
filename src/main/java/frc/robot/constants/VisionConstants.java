@@ -27,7 +27,7 @@ public class VisionConstants {
 
     public static final Set<Integer> EXCLUDED_TAG_IDS = new HashSet<>();
 
-    public static final double MAX_AMBIGUITY = 0.15;
+    public static final double MAX_AMBIGUITY = 0.3;
     public static final double FIELD_BORDER_MARGIN = 0.5;
     public static final int OV2311_RES_HORIZONTAL = 1600; 
     public static final int OV2311_RES_VERTICAL = 1200; 
@@ -49,6 +49,11 @@ public class VisionConstants {
           },
           new double[] {0.008, 0.027, 0.015, 0.044, 0.04, 0.078, 0.049, 0.027, 0.059, 0.029, 0.068},
           1);
+
+    public static final double thetaModifier = 40;
+    public static final double multiTagModifier = 0.6;
+    public static final double regressionModifier = 3;
+    public static final double maxChangeDistance = 4; //m
       
     public static SimCameraProperties getOV2311(){
       SimCameraProperties properties = new SimCameraProperties();

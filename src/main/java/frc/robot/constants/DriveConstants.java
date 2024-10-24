@@ -12,11 +12,11 @@ public class DriveConstants {
     public static final double TrueMaxAngularRate = 1.5 * Math.PI;
     public static final double TrueMaxSpeed = TunerConstants.kSpeedAt12VoltsMps;
 
-    public static final double headingP = 8;
+    public static final double headingP = 5;
     public static final double headingI = 0;
     public static final double headingD = 0;
 
-    public static final double XYDeadband = 0.1;
+    public static final double XYDeadband = 0.05;
     public static final double RotationDeadband = 0.1;
 
     public static double appliedMaxSpeed = TrueMaxSpeed;

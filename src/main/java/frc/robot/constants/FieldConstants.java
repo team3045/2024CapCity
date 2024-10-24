@@ -14,7 +14,7 @@ import java.util.List;
 
 public class FieldConstants {
 
-  public static final boolean isShopField = false;
+  public static final boolean isShopField = true;
 
   public static final double fieldLength = 16.451;
   public static final double fieldWidth = 8.211;
@@ -27,7 +27,7 @@ public class FieldConstants {
   public static final Translation2d ampCenter =
       new Translation2d(Units.inchesToMeters(72.455), fieldWidth);
 
-  public static final Rotation2d ampAngle = Rotation2d.fromDegrees(0);
+  public static final Rotation2d ampAngle = Rotation2d.fromDegrees(90);
 
   public static final Translation2d passingTarget = new Translation2d(0.81, 7.31);
   public static final Translation2d lowPassingTarget = new Translation2d(2.13, 8.07);

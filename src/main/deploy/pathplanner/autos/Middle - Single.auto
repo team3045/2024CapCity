@@ -12,6 +12,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "preload"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Middle - Middle Close"

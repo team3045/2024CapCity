@@ -32,9 +32,11 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
@@ -54,7 +56,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
 
-
     public static final PIDController HEADING_CONTROLLER = new PIDController(headingP, headingI, headingD);
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -71,7 +72,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private final SwerveRequest.SysIdSwerveSteerGains SteerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
 
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(TrueMaxSpeed * 0.1).withRotationalDeadband(TrueMaxAngularRate * 0.1) // Add a 10% deadband
+      .withDeadband(TrueMaxSpeed * XYDeadband).withRotationalDeadband(TrueMaxAngularRate * RotationDeadband) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
                                                                // driving in open loop
 
@@ -161,7 +162,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                                             driveBaseRadius,
                                             new ReplanningConfig()),
             () -> DriverStation.getAlliance().orElse(Alliance.Blue)==Alliance.Red, // Assume the path needs to be flipped for Red vs Blue, this is normally the case
-            this); // Subsystem for requirements
+            this); // Subsystem for requirements    
     }
 
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {

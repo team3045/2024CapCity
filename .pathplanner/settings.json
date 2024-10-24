@@ -3,7 +3,6 @@
   "robotLength": 0.7366,
   "holonomicMode": true,
   "pathFolders": [
-    "Start to Close",
     "Starts"
   ],
   "autoFolders": [
