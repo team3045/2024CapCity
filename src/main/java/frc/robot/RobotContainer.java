@@ -193,36 +193,38 @@ public class RobotContainer {
   }
 
   /*Auto Commands */
-  public final Command intakeAuto = 
-    arm.goToIntake().andThen(intake.runIntakeMotor().alongWith(shooter.startIntaking())).until(shooter.hasNoteBack);
+  public Command intakeAuto() {
+    return arm.goToIntake().andThen(intake.runIntakeMotor().alongWith(shooter.startIntaking())).until(shooter.hasNoteBack);
+  } 
 
-  public final Command stopIntake = 
-    intake.stop()
+  public Command stopIntake() { 
+    return intake.stop()
         .alongWith(new InstantCommand(() -> shooter.stopIntaking()));
-
-  public final Command aimAndRev = 
-    shooter.setRevving().alongWith(
+  }
+  public Command aimAndRev() { 
+   return shooter.setRevving().alongWith(
       arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
     .until(arm.atTarget.and(shooter.atSpeed));
+  }
 
-  public final Command stopShooter = 
-    shooter.stopFeed().andThen(shooter.coastShootersAndIdle());
+  public Command stopShooter(){ 
+    return shooter.stopFeed().andThen(shooter.coastShootersAndIdle());
+  }
 
-  public final Command shootSequence = 
-    shooter.setShooting().andThen(shooter.feedNote()).until(shooter.hasNoteBack.negate());
-
-  public final Command stopAndReset = 
-    arm.goToIntake().andThen(stopShooter);
+  public Command shootSequence() { 
+    return shooter.setShooting().andThen(shooter.feedNote()).until(shooter.hasNoteBack.negate());
+  }
+  public Command stopAndReset() { 
+    return arm.goToIntake().andThen(stopShooter());
+  }
 
   public void registerNamedCommands(){
-    NamedCommands.registerCommand("intakeAndStop", intakeAuto.andThen(stopIntake));
+    NamedCommands.registerCommand("intakeAndStop", intakeAuto().andThen(stopIntake()));
     NamedCommands.registerCommand("preload", 
       shooter.setRevving().alongWith(arm.goToDefaultShot()).until(arm.atTarget.and(arm.atIntake.negate()))
-      .andThen(shootSequence).andThen(stopAndReset));
-    NamedCommands.registerCommand("aim", 
-      shooter.setRevving().alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving())).until(arm.atTarget.and(arm.atIntake.negate())));
-    NamedCommands.registerCommand("shootSequence", 
-      shooter.setShooting().andThen(shooter.feedNote()).until(shooter.hasNoteBack.negate()).andThen(arm.goToIntake()).andThen(shooter.stopFeed().andThen(shooter.coastShootersAndIdle())));
+      .andThen(shootSequence()).andThen(stopAndReset()));
+    NamedCommands.registerCommand("aim", aimAndRev());
+    NamedCommands.registerCommand("shootSequence", shootSequence().andThen(stopAndReset()));
     NamedCommands.registerCommand("Test Print", Commands.print("Test").repeatedly());
   } 
 }
