@@ -15,14 +15,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commandfactories.AimFactory;
 import frc.robot.commands.DriveMaintainingHeading;
 import frc.robot.commons.GremlinPS4Controller;
-import frc.robot.constants.ArmAngles;
-import frc.robot.constants.ArmConstants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FieldConstants;
-import frc.robot.constants.ShooterConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
@@ -221,10 +217,12 @@ public class RobotContainer {
   public void registerNamedCommands(){
     NamedCommands.registerCommand("intakeAndStop", intakeAuto.andThen(stopIntake));
     NamedCommands.registerCommand("preload", 
-      AimFactory.aimShooterAndShoot(shooter, arm, () -> ArmConstants.defaultShotAngle));
-    NamedCommands.registerCommand("aim", AimFactory.aimShooterAndShoot(shooter, arm,
-      () -> arm.getAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving())));
-    NamedCommands.registerCommand("stowAndStop", AimFactory.stowAndCoast(shooter, arm));
+      shooter.setRevving().alongWith(arm.goToDefaultShot()).until(arm.atTarget.and(arm.atIntake.negate()))
+      .andThen(shootSequence).andThen(stopAndReset));
+    NamedCommands.registerCommand("aim", 
+      shooter.setRevving().alongWith(arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving())).until(arm.atTarget.and(arm.atIntake.negate())));
+    NamedCommands.registerCommand("shootSequence", 
+      shooter.setShooting().andThen(shooter.feedNote()).until(shooter.hasNoteBack.negate()).andThen(arm.goToIntake()).andThen(shooter.stopFeed().andThen(shooter.coastShootersAndIdle())));
     NamedCommands.registerCommand("Test Print", Commands.print("Test").repeatedly());
   } 
 }
