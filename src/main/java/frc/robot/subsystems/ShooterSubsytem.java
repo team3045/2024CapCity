@@ -52,8 +52,8 @@ public class ShooterSubsytem extends SubsystemBase {
   private double setpoint;
   private boolean defaultShot;
 
-  public enum ShooterState{
-    IDLE, 
+  public enum ShooterState {
+    IDLE,
     INTAKING,
     REVVING,
     SHOOTING,
@@ -64,14 +64,14 @@ public class ShooterSubsytem extends SubsystemBase {
   private ShooterState mState = ShooterState.IDLE;
 
   private static final FlywheelSim LEFT_FLYWHEEL_SIM = new FlywheelSim(
-    DCMotor.getKrakenX60(1), 
-    gearing, 
-    momentOfInertia);
+      DCMotor.getKrakenX60(1),
+      gearing,
+      momentOfInertia);
 
   private static final FlywheelSim RIGHT_FLYWHEEL_SIM = new FlywheelSim(
-    DCMotor.getKrakenX60(1), 
-    gearing, 
-    momentOfInertia);
+      DCMotor.getKrakenX60(1),
+      gearing,
+      momentOfInertia);
 
   private TalonFXSimState leftSimState;
   private TalonFXSimState rightSimState;
@@ -80,18 +80,18 @@ public class ShooterSubsytem extends SubsystemBase {
   public ShooterSubsytem() {
     frontRangeSensor.run();
     frontRangeSensorNotifer.setName("Front Range Sensor");
-    frontRangeSensorNotifer.startPeriodic(0.02); //runs on seperste thread to prevent loop overun
+    frontRangeSensorNotifer.startPeriodic(0.02); // runs on seperste thread to prevent loop overun
     backRangeSensor.run();
     backRangeSensorNotifier.setName("Back Range Sensor");
     backRangeSensorNotifier.startPeriodic(0.02);
 
 
-    hasGamePieceFront = frontRangeSensor.getRange() < frontHasNoteThreshold; 
+    hasGamePieceFront = frontRangeSensor.getRange() < frontHasNoteThreshold;
     hasGamePieceBack = backRangeSensor.getRange() < backHasNoteThreshold;
 
     configMotors();
-    
-    if(Utils.isSimulation()){
+
+    if (Utils.isSimulation()) {
       configSim();
     }
 
@@ -108,17 +108,17 @@ public class ShooterSubsytem extends SubsystemBase {
     ));
   }
 
-  public double getCurrentSpeedLeft(){
-     return leftShooter.getVelocity().getValueAsDouble();
+  public double getCurrentSpeedLeft() {
+    return leftShooter.getVelocity().getValueAsDouble();
   }
 
-  public double getCurrentSpeedRight(){
+  public double getCurrentSpeedRight() {
     return rightShooter.getVelocity().getValueAsDouble();
   }
 
-  public boolean atTargetSpeed(){
+  public boolean atTargetSpeed() {
     return MathUtil.isNear(setpoint, getCurrentSpeedLeft(), speedErrorTolerance)
-      && MathUtil.isNear(setpoint, getCurrentSpeedRight(), speedErrorTolerance);
+        && MathUtil.isNear(setpoint, getCurrentSpeedRight(), speedErrorTolerance);
   }
 
   public void setDefaultShot(boolean val){
@@ -132,40 +132,40 @@ public class ShooterSubsytem extends SubsystemBase {
     }, this).withName(newState.toString());
   }
 
-  //public commands to set state
-  public Command setIdle(){
+  // public commands to set state
+  public Command setIdle() {
     return setState(ShooterState.IDLE);
   }
 
-  public Command setShooting(){
+  public Command setShooting() {
     return setState(ShooterState.SHOOTING);
   }
 
-  public Command setAmp(){
+  public Command setAmp() {
     return setState(ShooterState.AMP);
   }
 
-  public Command setEjecting(){
+  public Command setEjecting() {
     return setState(ShooterState.EJECTING);
   }
 
-  public void setShooterSpeed(double requestedVeloRPS){
+  public void setShooterSpeed(double requestedVeloRPS) {
     setpoint = requestedVeloRPS;
 
     MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(requestedVeloRPS)
-      .withEnableFOC(false).withUpdateFreqHz(500).withSlot(0);
+        .withEnableFOC(false).withUpdateFreqHz(500).withSlot(0);
     leftShooter.setControl(request);
     rightShooter.setControl(request);
   }
 
-  public Command runForwardSlow(){
+  public Command runForwardSlow() {
     return this.run(() -> {
       setShooterSpeed(-10);
       feedMotor.set(0.1);
     });
   }
 
-  public Command runBackSlow(){
+  public Command runBackSlow() {
     return this.run(() -> {
       setShooterSpeed(-10);
       feedMotor.set(-0.1);
@@ -200,14 +200,15 @@ public class ShooterSubsytem extends SubsystemBase {
 
   public Command feedNote(){
     return this.run(() -> {
-      // MotionMagicVelocityVoltage request = new MotionMagicVelocityVoltage(feedingVelocity)
-      //   .withSlot(0).withUpdateFreqHz(50);
+      // MotionMagicVelocityVoltage request = new
+      // MotionMagicVelocityVoltage(feedingVelocity)
+      // .withSlot(0).withUpdateFreqHz(50);
       // feedMotor.setControl(request);
       feedMotor.set(0.95);
     }).withName("Feeding Note");
   }
 
-  public Command startIntaking(){
+  public Command startIntaking() {
     return this.run(() -> {
       feedMotor.set(0.1);
       mState = ShooterState.INTAKING;
@@ -227,8 +228,8 @@ public class ShooterSubsytem extends SubsystemBase {
       mState = ShooterState.IDLE;
   }
 
-  //shooters neutral mode should be coast
-  public Command coastShootersAndIdle(){
+  // shooters neutral mode should be coast
+  public Command coastShootersAndIdle() {
     return this.runOnce(() -> {
       mState = ShooterState.IDLE;
       leftShooter.setControl(new NeutralOut());
@@ -264,14 +265,15 @@ public class ShooterSubsytem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if(frontRangeSensor.isValid())
-      hasGamePieceFront = frontRangeSensor.getRange() < frontHasNoteThreshold; //cache sensor value so its same every iteration
-    if(backRangeSensor.isValid())
+    if (frontRangeSensor.isValid())
+      hasGamePieceFront = frontRangeSensor.getRange() < frontHasNoteThreshold; // cache sensor value so its same every
+                                                                               // iteration
+    if (backRangeSensor.isValid())
       hasGamePieceBack = backRangeSensor.getRange() < backHasNoteThreshold;
     logPeriodic();
   }
 
-  public void logPeriodic(){
+  public void logPeriodic() {
     GremlinLogger.logTalonFX(path + "leftShooter", leftShooter);
     GremlinLogger.logTalonFX(path + "rightShooter", rightShooter);
     GremlinLogger.logTalonFX(path + "feedMotor", feedMotor);
@@ -283,7 +285,7 @@ public class ShooterSubsytem extends SubsystemBase {
     GremlinLogger.logSD(path + "Setpoint", setpoint);
   }
 
-  //TRIGGERS
+  // TRIGGERS
   public final Trigger isIdle = new Trigger(() -> mState == ShooterState.IDLE);
   public final Trigger isRevving = new Trigger(() -> mState == ShooterState.REVVING);
   public final Trigger isShooting = new Trigger(() -> mState == ShooterState.SHOOTING);
@@ -292,13 +294,19 @@ public class ShooterSubsytem extends SubsystemBase {
 
   // This trigger will be true when there is a game piece in the shooter
   // and stay true for a short time after no game piece is detected.
-  // This delay allows the game piece to fully leave the shooter before we power down and stop aiming.
-  //The second trigger will stay try for a short time after note leaves because the velocity drops slightly as the note leaves
-  public final Trigger hasNoteFront = new Trigger(() -> hasGamePieceFront).debounce(hasNoteDebounceTime, DebounceType.kFalling);
-  public final Trigger hasNoteBack = new Trigger(() -> hasGamePieceBack).debounce(hasNoteDebounceTime, DebounceType.kFalling);
-  public final Trigger atSpeed = new Trigger(() -> atTargetSpeed()).debounce(hasNoteDebounceTime, DebounceType.kFalling);
+  // This delay allows the game piece to fully leave the shooter before we power
+  // down and stop aiming.
+  // The second trigger will stay try for a short time after note leaves because
+  // the velocity drops slightly as the note leaves
+  public final Trigger hasNoteFront = new Trigger(() -> hasGamePieceFront).debounce(hasNoteDebounceTime,
+      DebounceType.kFalling);
+  public final Trigger hasNoteBack = new Trigger(() -> hasGamePieceBack).debounce(hasNoteDebounceTime,
+      DebounceType.kFalling);
+  public final Trigger atSpeed = new Trigger(() -> atTargetSpeed()).debounce(hasNoteDebounceTime,
+      DebounceType.kFalling);
 
-  //isShooting is only enabled after revving has finished so we don't need to check for speed
+  // isShooting is only enabled after revving has finished so we don't need to
+  // check for speed
   public final Trigger shouldFeed = isShooting.and(hasNoteFront);
 
   public final Trigger defaultShotTrigger = new Trigger(() -> defaultShot);
@@ -309,13 +317,13 @@ public class ShooterSubsytem extends SubsystemBase {
 
     leftSimState.setSupplyVoltage(RobotController.getInputVoltage());
     rightSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    
+
     LEFT_FLYWHEEL_SIM.setState(0);
     RIGHT_FLYWHEEL_SIM.setState(0);
   }
 
   @Override
-  public void simulationPeriodic(){
+  public void simulationPeriodic() {
     leftSimState = leftShooter.getSimState();
     rightSimState = rightShooter.getSimState();
 

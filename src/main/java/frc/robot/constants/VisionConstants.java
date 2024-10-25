@@ -20,12 +20,13 @@ import frc.robot.vision.BreadPhotonCamera;
 
 /** Add your docs here. */
 public class VisionConstants {
-    //private constructor so cant be instantiated
-    private VisionConstants(){}
+  // private constructor so cant be instantiated
+  private VisionConstants() {
+  }
 
-    public static final String CAMERA_LOG_PATH = "VISION/CAMERAS/";
+  public static final String CAMERA_LOG_PATH = "VISION/CAMERAS/";
 
-    public static final Set<Integer> EXCLUDED_TAG_IDS = new HashSet<>();
+  public static final Set<Integer> EXCLUDED_TAG_IDS = new HashSet<>();
 
     public static final double MAX_AMBIGUITY = 0.3;
     public static final double FIELD_BORDER_MARGIN = 0.5;

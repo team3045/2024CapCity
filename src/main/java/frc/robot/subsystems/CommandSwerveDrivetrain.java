@@ -117,7 +117,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     /* Change this to the sysid routine you want to test */
     private final SysIdRoutine RoutineToApply = SysIdRoutineRotation;
 
-    /*Publishing */
+    /* Publishing */
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
     private final NetworkTable driveTable = inst.getTable("DrivePose");
     private final StructPublisher<Pose2d> pose2dPublisher = driveTable.getStructTopic("Drive Pose2d", Pose2d.struct).publish();
@@ -129,7 +129,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
-            seedFieldRelative(new Pose2d(0,0,Rotation2d.fromDegrees(0)));
+            seedFieldRelative(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
         }
         HEADING_CONTROLLER.enableContinuousInput(-Math.PI, Math.PI);
     }
@@ -139,7 +139,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         configurePathPlanner();
         if (Utils.isSimulation()) {
             startSimThread();
-            seedFieldRelative(new Pose2d(0,0,Rotation2d.fromDegrees(0)));
+            seedFieldRelative(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
         }
         HEADING_CONTROLLER.enableContinuousInput(-Math.PI, Math.PI);
     }
@@ -184,15 +184,16 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return RoutineToApply.dynamic(direction);
     }
 
-    public Command aimAtSpeakerMoving(DoubleSupplier vX, DoubleSupplier vY){
+    public Command aimAtSpeakerMoving(DoubleSupplier vX, DoubleSupplier vY) {
         return driveFacingAngleCommand(vX, vY, () -> getSpeakerAimingPoint());
     }
 
-    public Rotation2d getSpeakerAimingPoint(){
-        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 
-            FieldConstants.targetPoseBlue : FieldConstants.targetPoseRed;
+    public Rotation2d getSpeakerAimingPoint() {
+        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                ? FieldConstants.targetPoseBlue
+                : FieldConstants.targetPoseRed;
 
-        Pose2d robotPose = getState().Pose; 
+        Pose2d robotPose = getState().Pose;
 
         Translation2d fieldRobotSpeeds = new Translation2d(
             getState().speeds.vxMetersPerSecond, 
@@ -211,22 +212,22 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return new Rotation2d(targetRelativeToRobot.getX(), targetRelativeToRobot.getY());
     }
 
-    public double getSpeakerDistanceMoving(){
-        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 
-            FieldConstants.targetPoseBlue : FieldConstants.targetPoseRed;
+    public double getSpeakerDistanceMoving() {
+        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                ? FieldConstants.targetPoseBlue
+                : FieldConstants.targetPoseRed;
 
-        Pose2d robotPose = getState().Pose; 
+        Pose2d robotPose = getState().Pose;
 
         Translation2d fieldRobotSpeeds = new Translation2d(
-            getState().speeds.vxMetersPerSecond, 
-            getState().speeds.vyMetersPerSecond);
-        
-        /*Predict where target will be based on our current speeds */
+                getState().speeds.vxMetersPerSecond,
+                getState().speeds.vyMetersPerSecond);
+
+        /* Predict where target will be based on our current speeds */
         Translation2d virtualTarget = target.getTranslation()
-            .plus(
-                fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
-                .rotateBy(Rotation2d.fromDegrees(180.0)
-                ));
+                .plus(
+                        fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
+                                .rotateBy(Rotation2d.fromDegrees(180.0)));
 
         Translation2d targetRelativeToRobot = virtualTarget.minus(robotPose.getTranslation());
         return targetRelativeToRobot.getNorm();
@@ -236,19 +237,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return m_kinematics.toChassisSpeeds(getState().ModuleStates);
     }
 
-    public Command getDriveCommand(DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier vOmega){
-            return applyRequest(() -> drive.withVelocityX(vX.getAsDouble()) // Drive forward with
-                    // negative Y (forward)
-                    .withVelocityY(vY.getAsDouble()) // Drive left with negative X (left)
-                    .withRotationalRate(vOmega.getAsDouble()));// Drive counterclockwise with negative X (left)
+    public Command getDriveCommand(DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier vOmega) {
+        return applyRequest(() -> drive.withVelocityX(vX.getAsDouble()) // Drive forward with
+                // negative Y (forward)
+                .withVelocityY(vY.getAsDouble()) // Drive left with negative X (left)
+                .withRotationalRate(vOmega.getAsDouble()));// Drive counterclockwise with negative X (left)
     }
 
-    public Command driveFacingAngleCommand(DoubleSupplier vX, DoubleSupplier vY, Supplier<Rotation2d> angSupplier){
+    public Command driveFacingAngleCommand(DoubleSupplier vX, DoubleSupplier vY, Supplier<Rotation2d> angSupplier) {
         return applyRequest(() -> drive
                 .withVelocityX(vX.getAsDouble())
                 .withVelocityY(vY.getAsDouble())
                 .withRotationalRate(HEADING_CONTROLLER.calculate(
-                    getState().Pose.getRotation().getRadians(), angSupplier.get().getRadians())));
+                        getState().Pose.getRotation().getRadians(), angSupplier.get().getRadians())));
     }
 
     public Command driveBackFromAmp(){
@@ -284,21 +285,21 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         m_simNotifier.startPeriodic(kSimLoopPeriod);
     }
 
-    private boolean withinRange(){
-        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 
-            FieldConstants.targetPoseBlue : FieldConstants.targetPoseRed;
+    private boolean withinRange() {
+        Pose2d target = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                ? FieldConstants.targetPoseBlue
+                : FieldConstants.targetPoseRed;
         Pose2d robotPose = getState().Pose;
 
         Translation2d fieldRobotSpeeds = new Translation2d(
-            getState().speeds.vxMetersPerSecond, 
-            getState().speeds.vyMetersPerSecond);
-        
-        /*Predict where target will be based on our current speeds */
+                getState().speeds.vxMetersPerSecond,
+                getState().speeds.vyMetersPerSecond);
+
+        /* Predict where target will be based on our current speeds */
         Translation2d virtualTarget = target.getTranslation()
-            .plus(
-                fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
-                .rotateBy(Rotation2d.fromDegrees(180.0)
-                ));
+                .plus(
+                        fieldRobotSpeeds.times(ShooterConstants.tangentialNoteFlightTime)
+                                .rotateBy(Rotation2d.fromDegrees(180.0)));
 
         return virtualTarget.getDistance(robotPose.getTranslation()) <= rangeTheshold;
     }
@@ -308,10 +309,22 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     @Override
     public void periodic() {
         /* Periodically try to apply the operator perspective */
-        /* If we haven't applied the operator perspective before, then we should apply it regardless of DS state */
-        /* This allows us to correct the perspective in case the robot code restarts mid-match */
-        /* Otherwise, only check and apply the operator perspective if the DS is disabled */
-        /* This ensures driving behavior doesn't change until an explicit disable event occurs during testing*/
+        /*
+         * If we haven't applied the operator perspective before, then we should apply
+         * it regardless of DS state
+         */
+        /*
+         * This allows us to correct the perspective in case the robot code restarts
+         * mid-match
+         */
+        /*
+         * Otherwise, only check and apply the operator perspective if the DS is
+         * disabled
+         */
+        /*
+         * This ensures driving behavior doesn't change until an explicit disable event
+         * occurs during testing
+         */
         if (!hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
             DriverStation.getAlliance().ifPresent((allianceColor) -> {
                 this.setOperatorPerspectiveForward(

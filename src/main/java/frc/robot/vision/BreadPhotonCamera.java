@@ -39,7 +39,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 
 /** Add your docs here. */
-public class BreadPhotonCamera implements AutoCloseable{
+public class BreadPhotonCamera implements AutoCloseable {
     private static int InstanceCount = 0;
     public static final String kTableName = "photonvision";
 
@@ -70,12 +70,12 @@ public class BreadPhotonCamera implements AutoCloseable{
     private static final boolean VERSION_CHECK_ENABLED = true;
     private static long VERSION_CHECK_INTERVAL = 5;
     private double lastVersionCheckTime = 0;
-  
+
     private long prevHeartbeatValue = -1;
     private double prevHeartbeatChangeTime = 0;
     private static final double HEARTBEAT_DEBOUNCE_SEC = 0.5;
 
-    public BreadPhotonCamera(NetworkTableInstance instance, String cameraName, Pose3d camPose){
+    public BreadPhotonCamera(NetworkTableInstance instance, String cameraName, Pose3d camPose) {
         name = cameraName;
         this.camPose = camPose;
         var photonvision_root_table = instance.getTable(kTableName);
@@ -84,13 +84,11 @@ public class BreadPhotonCamera implements AutoCloseable{
 
         photonCamera = new PhotonCamera(cameraName);
 
-        var rawBytesEntry =
-            cameraTable
+        var rawBytesEntry = cameraTable
                 .getRawTopic("rawBytes")
                 .subscribe(
-                    "rawBytes", new byte[] {}, PubSubOption.periodic(0.01), PubSubOption.sendAll(true));
-        resultSubscriber =
-            new PacketSubscriber<>(
+                        "rawBytes", new byte[] {}, PubSubOption.periodic(0.01), PubSubOption.sendAll(true));
+        resultSubscriber = new PacketSubscriber<>(
                 rawBytesEntry, PhotonPipelineResult.serde, new PhotonPipelineResult());
         driverModePublisher = cameraTable.getBooleanTopic("driverModeRequest").publish();
         driverModeSubscriber = cameraTable.getBooleanTopic("driverMode").subscribe(false);
@@ -99,10 +97,8 @@ public class BreadPhotonCamera implements AutoCloseable{
         pipelineIndexRequest = cameraTable.getIntegerTopic("pipelineIndexRequest").publish();
         pipelineIndexState = cameraTable.getIntegerTopic("pipelineIndexState").subscribe(0);
         heartbeatEntry = cameraTable.getIntegerTopic("heartbeat").subscribe(-1);
-        cameraIntrinsicsSubscriber =
-            cameraTable.getDoubleArrayTopic("cameraIntrinsics").subscribe(null);
-        cameraDistortionSubscriber =
-            cameraTable.getDoubleArrayTopic("cameraDistortion").subscribe(null);
+        cameraIntrinsicsSubscriber = cameraTable.getDoubleArrayTopic("cameraIntrinsics").subscribe(null);
+        cameraDistortionSubscriber = cameraTable.getDoubleArrayTopic("cameraDistortion").subscribe(null);
 
         ledModeRequest = photonvision_root_table.getIntegerTopic("ledModeRequest").publish();
         ledModeState = photonvision_root_table.getIntegerTopic("ledModeState").subscribe(-1);
@@ -110,9 +106,8 @@ public class BreadPhotonCamera implements AutoCloseable{
 
         // Existing is enough to make this multisubscriber do its thing
         @SuppressWarnings({ "unused", "resource" })
-        MultiSubscriber m_topicNameSubscriber =
-            new MultiSubscriber(
-                instance, new String[] {"/photonvision/"}, PubSubOption.topicsOnly(true));
+        MultiSubscriber m_topicNameSubscriber = new MultiSubscriber(
+                instance, new String[] { "/photonvision/" }, PubSubOption.topicsOnly(true));
 
         HAL.report(tResourceType.kResourceType_PhotonCamera, InstanceCount);
         InstanceCount++;
@@ -129,7 +124,6 @@ public class BreadPhotonCamera implements AutoCloseable{
         // Return result.
         return resultSubscriber.get();
     }
-
 
     /**
      * Returns whether the camera is in driver mode.
@@ -150,8 +144,10 @@ public class BreadPhotonCamera implements AutoCloseable{
     }
 
     /**
-     * Request the camera to save a new image file from the input camera stream with overlays. Images
-     * take up space in the filesystem of the PhotonCamera. Calling it frequently will fill up disk
+     * Request the camera to save a new image file from the input camera stream with
+     * overlays. Images
+     * take up space in the filesystem of the PhotonCamera. Calling it frequently
+     * will fill up disk
      * space and eventually cause the system to stop working. Clear out images in
      * /opt/photonvision/photonvision_config/imgSaves frequently to prevent issues.
      */
@@ -160,8 +156,10 @@ public class BreadPhotonCamera implements AutoCloseable{
     }
 
     /**
-     * Request the camera to save a new image file from the output stream with overlays. Images take
-     * up space in the filesystem of the PhotonCamera. Calling it frequently will fill up disk space
+     * Request the camera to save a new image file from the output stream with
+     * overlays. Images take
+     * up space in the filesystem of the PhotonCamera. Calling it frequently will
+     * fill up disk space
      * and eventually cause the system to stop working. Clear out images in
      * /opt/photonvision/photonvision_config/imgSaves frequently to prevent issues.
      */
@@ -195,15 +193,15 @@ public class BreadPhotonCamera implements AutoCloseable{
     public VisionLEDMode getLEDMode() {
         int value = (int) ledModeState.get(-1);
         switch (value) {
-        case 0:
-            return VisionLEDMode.kOff;
-        case 1:
-            return VisionLEDMode.kOn;
-        case 2:
-            return VisionLEDMode.kBlink;
-        case -1:
-        default:
-            return VisionLEDMode.kDefault;
+            case 0:
+                return VisionLEDMode.kOff;
+            case 1:
+                return VisionLEDMode.kOn;
+            case 2:
+                return VisionLEDMode.kBlink;
+            case -1:
+            default:
+                return VisionLEDMode.kDefault;
         }
     }
 
@@ -219,9 +217,12 @@ public class BreadPhotonCamera implements AutoCloseable{
     /**
      * Returns whether the latest target result has targets.
      *
-     * <p>This method is deprecated; {@link PhotonPipelineResult#hasTargets()} should be used instead.
+     * <p>
+     * This method is deprecated; {@link PhotonPipelineResult#hasTargets()} should
+     * be used instead.
      *
-     * @deprecated This method should be replaced with {@link PhotonPipelineResult#hasTargets()}
+     * @deprecated This method should be replaced with
+     *             {@link PhotonPipelineResult#hasTargets()}
      * @return Whether the latest target result has targets.
      */
     @Deprecated
@@ -230,7 +231,8 @@ public class BreadPhotonCamera implements AutoCloseable{
     }
 
     /**
-     * Returns the name of the camera. This will return the same value that was given to the
+     * Returns the name of the camera. This will return the same value that was
+     * given to the
      * constructor as cameraName.
      *
      * @return The name of the camera.
@@ -240,20 +242,22 @@ public class BreadPhotonCamera implements AutoCloseable{
     }
 
     /**
-     * Get the 3d position of camera on robot. Likely not often called 
-     * as the camera pose should be configured in limelight UI. 
+     * Get the 3d position of camera on robot. Likely not often called
+     * as the camera pose should be configured in limelight UI.
+     * 
      * @return The 3d position of the the camera with robot center as origin
      */
-    public Pose3d getCameraPose(){
+    public Pose3d getCameraPose() {
         return camPose;
     }
 
-    public PhotonCamera getPhotonCamera(){
+    public PhotonCamera getPhotonCamera() {
         return photonCamera;
     }
 
     /**
-     * Returns whether the camera is connected and actively returning new data. Connection status is
+     * Returns whether the camera is connected and actively returning new data.
+     * Connection status is
      * debounced.
      *
      * @return True if the camera is actively sending frame data, false otherwise.
@@ -275,7 +279,7 @@ public class BreadPhotonCamera implements AutoCloseable{
         var cameraMatrix = cameraIntrinsicsSubscriber.get();
         if (cameraMatrix != null && cameraMatrix.length == 9) {
             return Optional.of(MatBuilder.fill(Nat.N3(), Nat.N3(), cameraMatrix));
-        } else 
+        } else
             return Optional.empty();
     }
 
@@ -283,12 +287,13 @@ public class BreadPhotonCamera implements AutoCloseable{
         var distCoeffs = cameraDistortionSubscriber.get();
         if (distCoeffs != null && distCoeffs.length == 5) {
             return Optional.of(MatBuilder.fill(Nat.N5(), Nat.N1(), distCoeffs));
-        } else 
+        } else
             return Optional.empty();
     }
 
     /**
-     * Gets the NetworkTable representing this camera's subtable. You probably don't ever need to call
+     * Gets the NetworkTable representing this camera's subtable. You probably don't
+     * ever need to call
      * this.
      */
     public final NetworkTable getCameraTable() {
@@ -320,9 +325,11 @@ public class BreadPhotonCamera implements AutoCloseable{
     }
 
     private void verifyVersion() {
-        if (!VERSION_CHECK_ENABLED) return;
+        if (!VERSION_CHECK_ENABLED)
+            return;
 
-        if ((Timer.getFPGATimestamp() - lastVersionCheckTime) < VERSION_CHECK_INTERVAL) return;
+        if ((Timer.getFPGATimestamp() - lastVersionCheckTime) < VERSION_CHECK_INTERVAL)
+            return;
         lastVersionCheckTime = Timer.getFPGATimestamp();
 
         // Heartbeat entry is assumed to always be present. If it's not present, we
@@ -331,24 +338,24 @@ public class BreadPhotonCamera implements AutoCloseable{
             Set<String> cameraNames = cameraTable.getInstance().getTable(kTableName).getSubTables();
             if (cameraNames.isEmpty()) {
                 DriverStation.reportError(
-                    "Could not find any PhotonVision coprocessors on NetworkTables. Double check that PhotonVision is running, and that your camera is connected!",
-                    false);
+                        "Could not find any PhotonVision coprocessors on NetworkTables. Double check that PhotonVision is running, and that your camera is connected!",
+                        false);
             } else {
                 DriverStation.reportError(
-                    "PhotonVision coprocessor at path "
-                        + path
-                        + " not found on NetworkTables. Double check that your camera names match!",
-                    true);
+                        "PhotonVision coprocessor at path "
+                                + path
+                                + " not found on NetworkTables. Double check that your camera names match!",
+                        true);
                 DriverStation.reportError(
-                    "Found the following PhotonVision cameras on NetworkTables:\n"
-                        + String.join("\n", cameraNames),
-                    false);
+                        "Found the following PhotonVision cameras on NetworkTables:\n"
+                                + String.join("\n", cameraNames),
+                        false);
             }
         }
         // Check for connection status. Warn if disconnected.
         else if (!isConnected()) {
             DriverStation.reportWarning(
-                "PhotonVision coprocessor at path " + path + " is not sending new data.", true);
+                    "PhotonVision coprocessor at path " + path + " is not sending new data.", true);
         }
 
         // Check for version. Warn if the versions aren't aligned.
@@ -357,8 +364,7 @@ public class BreadPhotonCamera implements AutoCloseable{
             // Error on a verified version mismatch
             // But stay silent otherwise
 
-            String bfw =
-                "\n\n\n\n\n"
+            String bfw = "\n\n\n\n\n"
                     + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
                     + ">>> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
                     + ">>>                                          \n"
@@ -376,8 +382,7 @@ public class BreadPhotonCamera implements AutoCloseable{
                     + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
 
             DriverStation.reportWarning(bfw, false);
-            var versionMismatchMessage =
-                "Photon version "
+            var versionMismatchMessage = "Photon version "
                     + PhotonVersion.versionString
                     + " does not match coprocessor version "
                     + versionString
@@ -385,5 +390,5 @@ public class BreadPhotonCamera implements AutoCloseable{
             DriverStation.reportError(versionMismatchMessage, false);
             throw new UnsupportedOperationException(versionMismatchMessage);
         }
-    }   
+    }
 }

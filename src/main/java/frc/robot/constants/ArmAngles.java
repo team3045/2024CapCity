@@ -12,9 +12,9 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
 /** Add your docs here. */
 public class ArmAngles {
-    public static final InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap(); 
+    public static final InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
     public static final Pose3d speakerAimingPoint = new Pose3d();
-    public static final ArrayList<Double> speakerTags = new ArrayList<>(Arrays.asList(3.0,7.0));
+    public static final ArrayList<Double> speakerTags = new ArrayList<>(Arrays.asList(3.0, 7.0));
 
     public static void initLookuptable(){
         map.put(1.3,ArmConstants.defaultShotAngle);

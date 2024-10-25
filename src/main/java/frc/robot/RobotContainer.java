@@ -125,15 +125,13 @@ public class RobotContainer {
      /*Intake Bindings */ 
     joystick.R1().and(shooter.hasNoteBack.negate()).toggleOnTrue( 
         (arm.goToIntake()
-          .andThen(Commands.waitUntil(arm.atIntake))
-          .andThen(intake.setIntakingState())
-          .andThen(intake.runIntakeMotor()
-            .finallyDo(() -> intake.stopRunnable())))
-        .alongWith(
-          shooter.startIntaking()
-            .finallyDo(() -> shooter.stopIntaking())
-        )
-    );
+            .andThen(Commands.waitUntil(arm.atIntake))
+            .andThen(intake.setIntakingState())
+            .andThen(intake.runIntakeMotor()
+                .finallyDo(() -> intake.stopRunnable())))
+            .alongWith(
+                shooter.startIntaking()
+                    .finallyDo(() -> shooter.stopIntaking())));
 
     /*Trigger to deal with Intake state */
     intake.isIntaking

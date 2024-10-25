@@ -23,38 +23,40 @@ import frc.robot.commons.GremlinUtil;
 
 /** Add your docs here. */
 public class ArmConstants {
-    //CANBUS
+    // CANBUS
     public static final int leftMotorID = 13;
     public static final int rightMotorID = 14;
     public static final String canbus = "3045 Canivore";
     public static final int cancoderID = 20;
 
-    //PHYSICS
-    public static final double armMOI = GremlinUtil.lbIn2TokgM2(3490); //in^2 lb
-    public static final double armCOM = Units.inchesToMeters(15.044); //Close enough to directly below pivot for our purposes
+    // PHYSICS
+    public static final double armMOI = GremlinUtil.lbIn2TokgM2(3490); // in^2 lb
+    public static final double armCOM = Units.inchesToMeters(15.044); // Close enough to directly below pivot for our
+                                                                      // purposes
     public static final double armMass = Units.lbsToKilograms(17.044);
-    public static final double mech2dOffset = 180; //degrees
+    public static final double mech2dOffset = 180; // degrees
     public static final double simPositionX = -0.051;
     public static final double simPositionY = 0;
     public static final double simPositionZ = 0.6096;
-   
-    //ANGLES
-    public static final double minAngle = 18.26-90; //degrees
+
+    // ANGLES
+    public static final double minAngle = 18.26 - 90; // degrees
     public static final double maxAngle = 110;
     public static final double intakeAngle = minAngle;
     public static final double ampAngle = 47;
     public static final double defaultShotAngle = -28;
 
-    //TOLERANCES
+    // TOLERANCES
     public static final double angleTolerance = 0.5;
-    public static final double velocityTolerance = 1; //deg / s
-    public static final double atTargetDelay = 0.1; //sec
+    public static final double velocityTolerance = 1; // deg / s
+    public static final double atTargetDelay = 0.1; // sec
 
-    //LOGPATH
+    // LOGPATH
     public static final String path = "ArmSubsystem/";
 
-    //MECHANISM
-    public static final double canvasWidth = Units.inchesToMeters(32); //Technically arbitray units but we'll use meters to be conssistent
+    // MECHANISM
+    public static final double canvasWidth = Units.inchesToMeters(32); // Technically arbitray units but we'll use
+                                                                       // meters to be conssistent
     public static final double canvasHeight = Units.inchesToMeters(32);
     public static final double rootX = canvasWidth / 2;
     public static final double rootY = Units.inchesToMeters(25.752224);
@@ -62,21 +64,21 @@ public class ArmConstants {
     public static final double simY = 0;
     public static final double simZ = 0;
 
-    //CONFIGURATION
+    // CONFIGURATION
 
-    //Current Limits
-    public static final double maxStatorCurrent = 120; //Amps
-    public static final double maxSupplyCurrent = 60; //Amps
-    public static final double maxSupplyTime= 0.1; //Seconds
+    // Current Limits
+    public static final double maxStatorCurrent = 120; // Amps
+    public static final double maxSupplyCurrent = 60; // Amps
+    public static final double maxSupplyTime = 0.1; // Seconds
     public static final boolean enableStatorCurrentLimit = true;
     public static final boolean enableSupplyCurrentLimit = true;
 
-    //Feedback Configs
-    public static final double rotorToSensorRatio = (60.0/12.0) * (60.0/18.0); //gearing from motor to cancoder
-    public static final double sensorToMechanismRatio = (48.0 / 16.0); //gearing from cancoder to arm pivot
+    // Feedback Configs
+    public static final double rotorToSensorRatio = (60.0 / 12.0) * (60.0 / 18.0); // gearing from motor to cancoder
+    public static final double sensorToMechanismRatio = (48.0 / 16.0); // gearing from cancoder to arm pivot
     public static final double totalGearing = rotorToSensorRatio * sensorToMechanismRatio;
 
-    //Inverts
+    // Inverts
     public static final InvertedValue leftInverted = InvertedValue.Clockwise_Positive;
     public static final InvertedValue rightInverted = InvertedValue.CounterClockwise_Positive;
 
@@ -84,60 +86,59 @@ public class ArmConstants {
     public static final double targetAcceleration = 2; //Rot per Sec^2, This is mostly going to be your max workable acceleration
     public static final double targetVelocity = 1; //Rot per Sec, This is mostly going to be max workable Velocity
 
-    //Control Loop Gains
-    public static final GravityTypeValue gravity = GravityTypeValue.Elevator_Static; 
-    public static final double kP = 500; 
-    public static final double kI = 0; 
-    public static final double kD = 0.1; 
-    public static final double kG = 0.701825; //voltage required to overcome gravity
-    public static final double kV = 1.593; //voltage based on requested velocity
-    public static final double kA = 0.78869; //voltage based on requested acceleration
-    public static final double kS = 0.29658; //Voltage to overcome friction
+    // Control Loop Gains
+    public static final GravityTypeValue gravity = GravityTypeValue.Elevator_Static;
+    public static final double kP = 500;
+    public static final double kI = 0;
+    public static final double kD = 0.1;
+    public static final double kG = 0.701825; // voltage required to overcome gravity
+    public static final double kV = 1.593; // voltage based on requested velocity
+    public static final double kA = 0.78869; // voltage based on requested acceleration
+    public static final double kS = 0.29658; // Voltage to overcome friction
 
-    //Cancoder Settings
-    public static final double angleOffset = -0.177; //rotations, divide b/c arm to cancocer
-    public static final SensorDirectionValue cancoderInvert = SensorDirectionValue.Clockwise_Positive; 
+    // Cancoder Settings
+    public static final double angleOffset = -0.177; // rotations, divide b/c arm to cancocer
+    public static final SensorDirectionValue cancoderInvert = SensorDirectionValue.Clockwise_Positive;
 
-    
-    //Motor Configs
+    // Motor Configs
     public static final CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs()
-        .withStatorCurrentLimit(maxStatorCurrent)
-        .withSupplyCurrentLimit(maxSupplyCurrent)
-        .withSupplyTimeThreshold(maxSupplyTime)
-        .withStatorCurrentLimitEnable(enableStatorCurrentLimit)
-        .withSupplyCurrentLimitEnable(enableSupplyCurrentLimit);
-    
+            .withStatorCurrentLimit(maxStatorCurrent)
+            .withSupplyCurrentLimit(maxSupplyCurrent)
+            .withSupplyTimeThreshold(maxSupplyTime)
+            .withStatorCurrentLimitEnable(enableStatorCurrentLimit)
+            .withSupplyCurrentLimitEnable(enableSupplyCurrentLimit);
+
     public static final FeedbackConfigs feedbackConfigs = new FeedbackConfigs()
-        .withFeedbackRemoteSensorID(cancoderID)
-        .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder)
-        .withSensorToMechanismRatio(sensorToMechanismRatio).withFeedbackRotorOffset(0)
-        .withRotorToSensorRatio(rotorToSensorRatio);
+            .withFeedbackRemoteSensorID(cancoderID)
+            .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder)
+            .withSensorToMechanismRatio(sensorToMechanismRatio).withFeedbackRotorOffset(0)
+            .withRotorToSensorRatio(rotorToSensorRatio);
 
     public static final MotionMagicConfigs motionMagic = new MotionMagicConfigs()
-        .withMotionMagicAcceleration(targetAcceleration)
-        .withMotionMagicCruiseVelocity(targetVelocity);
+            .withMotionMagicAcceleration(targetAcceleration)
+            .withMotionMagicCruiseVelocity(targetVelocity);
 
     public static final Slot0Configs slot0 = new Slot0Configs()
-        .withGravityType(gravity)
-        .withKP(kP)
-        .withKI(kI)
-        .withKP(kP)
-        .withKG(0)
-        .withKV(kV)
-        .withKS(kS)
-        .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseVelocitySign);
+            .withGravityType(gravity)
+            .withKP(kP)
+            .withKI(kI)
+            .withKP(kP)
+            .withKG(0)
+            .withKV(kV)
+            .withKS(kS)
+            .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseVelocitySign);
 
-    //Apply Motor Invert in Armsubsystem b/c left and right are opposite
+    // Apply Motor Invert in Armsubsystem b/c left and right are opposite
     public static final TalonFXConfiguration motorConfig = new TalonFXConfiguration()
-        .withCurrentLimits(currentLimits)
-        .withFeedback(feedbackConfigs)
-        .withMotionMagic(motionMagic)
-        .withSlot0(slot0);
+            .withCurrentLimits(currentLimits)
+            .withFeedback(feedbackConfigs)
+            .withMotionMagic(motionMagic)
+            .withSlot0(slot0);
 
-    //Cancoder Configs
+    // Cancoder Configs
     public static final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration()
-        .withMagnetSensor(new MagnetSensorConfigs()
-            .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf)
-            .withMagnetOffset(angleOffset) 
-            .withSensorDirection(cancoderInvert));
+            .withMagnetSensor(new MagnetSensorConfigs()
+                    .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf)
+                    .withMagnetOffset(angleOffset)
+                    .withSensorDirection(cancoderInvert));
 }
