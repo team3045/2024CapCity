@@ -5,6 +5,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -13,18 +14,23 @@ import java.util.List;
 
 public class FieldConstants {
 
-    public static final double fieldLength = 16.451;
-    public static final double fieldWidth = 8.211;
+  public static final boolean isShopField = false;
+
+  public static final double fieldLength = 16.451;
+  public static final double fieldWidth = 8.211;
 
     public static final double GOAL_INWARD_SHIFT = 0.0;
 
     // AprilTag constants
     public static final double aprilTagWidth = Units.inchesToMeters(8.12500);
 
-    public static final Translation2d ampCenter = new Translation2d(Units.inchesToMeters(72.455), fieldWidth);
+  public static final Translation2d ampCenter =
+      new Translation2d(Units.inchesToMeters(72.455), fieldWidth);
 
-    public static final Translation2d passingTarget = new Translation2d(0.81, 7.31);
-    public static final Translation2d lowPassingTarget = new Translation2d(2.13, 8.07);
+  public static final Rotation2d ampAngle = Rotation2d.fromDegrees(90);
+
+  public static final Translation2d passingTarget = new Translation2d(0.81, 7.31);
+  public static final Translation2d lowPassingTarget = new Translation2d(2.13, 8.07);
 
     public static final double noteSpacing = Units.inchesToMeters(64);
 
@@ -162,9 +168,68 @@ public class FieldConstants {
             fieldLength,
             fieldWidth);
 
-    // Target Rectangle
-    public static final Pose3d tagSevenPose = aprilTags.getTagPose(7).get();
-    public static final Pose3d tagThreePose = aprilTags.getTagPose(3).get();
+
+    public static final double speakerToWall = 6.64765625; //m
+    public static final double speakerX = -0.038099999999999995;
+    public static final double speakerY = 5.547867999999999;
+    public static final double speakerZ = 1.4511020000000001;
+
+    public static final double shop7Y = 2.3796625;
+    public static final double shop7Z = 1.36921875;
+    public static final double shop6Y = 1.3001625;
+    public static final double shop6Z = 1.5859125;
+    public static final double shop2Y = 3.819525;
+    public static final double shop2Z = 2.3320375;
+    public static final double wallOffset = -0.00635;
+    public static final double tempX = speakerX + speakerToWall + wallOffset;
+    public static final double tempY = speakerY + (shop7Y-shop2Y);
+    public static final double tempZ = speakerZ + (shop6Z - shop7Z);
+    public static final AprilTagFieldLayout shopLayout = new AprilTagFieldLayout(
+        List.of(
+            new AprilTag(
+                  7,
+                  new Pose3d(
+                      speakerX,
+                      speakerY,
+                      speakerZ,
+                      new Rotation3d(new Quaternion(1.0, 0.0, 0.0, 0.0)))),
+            new AprilTag(
+                  8,
+                  new Pose3d(
+                      speakerX,
+                      4.982717999999999,
+                      speakerZ,
+                      new Rotation3d(new Quaternion(1.0, 0.0, 0.0, 0.0)))),
+            new AprilTag(
+                6,
+                new Pose3d(
+                    speakerX + speakerToWall + wallOffset, 
+                    speakerY + (shop7Y-shop6Y), 
+                    speakerZ + (shop6Z - shop7Z), 
+                    new Rotation3d(new Quaternion(6.123233995736766e-17, 0.0, 0.0, 1.0)))),
+            new AprilTag(
+                2,
+                new Pose3d(
+                    speakerX + speakerToWall + wallOffset, 
+                    speakerY + (shop7Y-shop2Y), 
+                    speakerZ + (shop2Z - shop7Z), 
+                    new Rotation3d(new Quaternion(6.123233995736766e-17, 0.0, 0.0, 1.0)))),
+            new AprilTag(
+                  1,
+                  new Pose3d(
+                      0,
+                      0,
+                      0,
+                      new Rotation3d(
+                          new Quaternion(-0.7071067811865475, 0.0, 0.0, 0.7071067811865476))))
+        ),
+        fieldLength,
+        fieldWidth
+    );
+
+  // Target Rectangle
+  public static final Pose3d tagSevenPose = aprilTags.getTagPose(7).get();
+  public static final Pose3d tagThreePose = aprilTags.getTagPose(3).get();
 
     // public static final Translation3d[] targetVerticies = {
     // new Translation3d(

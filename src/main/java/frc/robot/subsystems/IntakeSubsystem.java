@@ -107,8 +107,9 @@ public class IntakeSubsystem extends SubsystemBase {
     state = IntakeState.IDLE;
   }
 
-  public Command stop() {
-    return this.run(() -> {
+
+  public Command stop(){
+    return this.runOnce(() -> {
       intakeMotorLeft.stopMotor();
       intakeMotorRight.stopMotor();
       state = IntakeState.IDLE;

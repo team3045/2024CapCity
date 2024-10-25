@@ -2,23 +2,24 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 4.061722123444247,
-      "y": 5.038789506150441
+      "x": 0.77,
+      "y": 4.43
     },
-    "rotation": 0
+    "rotation": 120.0
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "SimplePath"
+            "name": "preload"
           }
         }
       ]
     }
   },
-  "folder": null
+  "folder": "Starts",
+  "choreoAuto": false
 }

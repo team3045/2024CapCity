@@ -87,15 +87,13 @@ public class ArmSubsystem extends SubsystemBase {
   // Publishing
   private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
   private final NetworkTable armTable = inst.getTable("Positioner");
-  private final StructPublisher<Pose3d> pose3dPublisher = armTable.getStructTopic("Arm Pose3d", Pose3d.struct)
-      .publish();
+  private final StructPublisher<Pose3d> pose3dPublisher = armTable.getStructTopic("Arm Pose3d", Pose3d.struct).publish();
+  private double smartdashboardNumber = 0;
 
-  // TRIGGERS
-  // Add a trigger for isReady; debounce it so that it doesn't flicker while we're
-  // shooting
+  //TRIGGERS
   // TODO: Consider caching.
-  public final Trigger atTarget = new Trigger(this::atTargetPosition).debounce(atTargetDelay, DebounceType.kFalling);
-  public final Trigger atIntake = new Trigger(this::atIntake).debounce(atTargetDelay, DebounceType.kFalling);
+  public final Trigger atTarget = new Trigger(this::atTargetPosition);
+  public final Trigger atIntake = new Trigger(this::atIntake).debounce(atTargetDelay,DebounceType.kFalling);
 
   // SYSID
   private final MutableMeasure<Voltage> appliedVoltage = MutableMeasure.mutable(Volts.of(0));
@@ -141,6 +139,8 @@ public class ArmSubsystem extends SubsystemBase {
     if (Utils.isSimulation()) {
       configSim();
     }
+
+    SmartDashboard.putNumber(path + "smartdashoardAngle", getPositionDegrees());
   }
 
   /**
@@ -200,6 +200,11 @@ public class ArmSubsystem extends SubsystemBase {
 
   public double getVelocityRotPerSec() {
     return getVelocityDegPerSec() / 360;
+  }
+
+  public double getSmartdashboardNumber(){
+    smartdashboardNumber = SmartDashboard.getNumber(path + "smartdashoardAngle", getPositionDegrees());
+    return smartdashboardNumber;
   }
 
   /**
@@ -271,7 +276,7 @@ public class ArmSubsystem extends SubsystemBase {
    * 
    * @param targetAngle desired angle of the arm in degrees
    */
-  private void setTarget(double targetAngle) {
+  public void setTarget(double targetAngle){
     setpoint = GremlinUtil.clampWithLogs(maxAngle, minAngle, targetAngle);
 
     double gravFeedforward = kG * Math.cos(getPositionRadians());
@@ -292,8 +297,8 @@ public class ArmSubsystem extends SubsystemBase {
    * @param angle desired angle of the arm in degrees
    * @return A command controlling the arm to travel to the specified angle
    */
-  public Command goToAngle(DoubleSupplier angle) {
-    return this.runOnce(() -> {
+  public Command goToAngle(DoubleSupplier angle){
+    return this.run(() -> {
       setTarget(angle.getAsDouble());
     }).until(() -> atTargetPosition());
   }
@@ -313,8 +318,12 @@ public class ArmSubsystem extends SubsystemBase {
     return goToAngle(() -> ampAngle);
   }
 
-  public Command goToMin() {
-    return goToAngle(() -> minAngle);
+  public Command goToDefaultShot(){
+    return goToAngle(() -> defaultShotAngle);
+  }
+
+  public Command goToMin(){
+    return goToAngle(()-> minAngle);
   }
 
   public Command goToMax() {

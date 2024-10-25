@@ -10,6 +10,7 @@ import dev.doglog.DogLog;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -98,16 +99,24 @@ public class GremlinLogger extends DogLog {
      */
     public static void logSD(String key, Pose3d value) {
         log(key, value);
-        SmartDashboard.putNumberArray(key,
-                new double[] {
-                        value.getX(), value.getY(), value.getZ(),
-                        value.getRotation().getX(), value.getRotation().getY(), value.getRotation().getZ()
-                });
+        SmartDashboard.putNumberArray(key, 
+            new double[]{
+                value.getX(),value.getY(),value.getZ(),
+                value.getRotation().getX(),value.getRotation().getY(),value.getRotation().getZ()
+            }
+        );
     }
 
-    /**
-     * Logs a Pose2d and also puts it on Smartdashboard
-     * 
+    /**Logs a Transform3d and also puts it on Smartdashboard
+     * @param key
+     * @param value
+     */
+    public static void logSD(String key, Transform3d value){
+        Pose3d pose = GeomUtil.transform3dToPose3d(value);
+        logSD(key, pose);
+    }
+
+    /**Logs a Pose2d and also puts it on Smartdashboard
      * @param key
      * @param value
      */ // TODO: not sure if a 3 element array is correct
