@@ -18,9 +18,41 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Middle - Middle Close"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Middle - Middle Close"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "intakeAndStop"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "aim"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "shootSequence"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         }
       ]

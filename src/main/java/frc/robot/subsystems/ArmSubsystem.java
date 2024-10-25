@@ -296,7 +296,7 @@ public class ArmSubsystem extends SubsystemBase {
    * @return A command controlling the arm to travel to the specified angle
    */
   public Command goToAngle(DoubleSupplier angle){
-    return this.runOnce(() -> {
+    return this.run(() -> {
       setTarget(angle.getAsDouble());
     }).until(() -> atTargetPosition());
   }

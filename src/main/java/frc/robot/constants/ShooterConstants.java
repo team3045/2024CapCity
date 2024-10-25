@@ -22,7 +22,7 @@ public class ShooterConstants {
     public static final String canbus = "3045 Canivore";
 
     public static final double frontHasNoteThreshold = 40; //mm
-    public static final double backHasNoteThreshold = 90; //mm
+    public static final double backHasNoteThreshold = 80; //mm
     public static final double hasNoteDebounceTime = 0.5; //s
 
     public static final double shootingVelocity = 100; //rot per seconds

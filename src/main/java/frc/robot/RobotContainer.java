@@ -10,14 +10,19 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commandfactories.AimFactory;
 import frc.robot.commands.DriveMaintainingHeading;
 import frc.robot.commons.GremlinPS4Controller;
+import frc.robot.constants.ArmAngles;
+import frc.robot.constants.ArmConstants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FieldConstants;
+import frc.robot.constants.ShooterConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
@@ -99,6 +104,7 @@ public class RobotContainer {
 
     /*Triggers to deal with State of Shooter */
     (shooter.isRevving.or(shooter.isShooting))
+      .and(() -> DriverStation.isTeleop())
       .and(shooter.hasNoteBack)
       .and(shooter.atSpeed)
       .and(arm.atTarget)
@@ -107,12 +113,15 @@ public class RobotContainer {
         shooter.setShooting().andThen(shooter.feedNote())); //TODO: add a cancel so we go back to normal rotation maybe
 
     shooter.isIdle
+    .and(() -> DriverStation.isTeleop())
       .onTrue(
         shooter.coastShootersAndIdle()
         .andThen(arm.goToMin()));
     
     //Once the note is gone we're done shooting so we go idle and coast the shooters
-    shooter.isShooting.and(shooter.hasNoteBack.negate()).whileTrue(
+    shooter.isShooting
+    .and(() -> DriverStation.isTeleop())
+    .and(shooter.hasNoteBack.negate()).whileTrue(
       shooter.coastShootersAndIdle()
       .andThen(shooter.stopFeed())
       .andThen(Commands.print("Stopped After shot")));
@@ -132,6 +141,7 @@ public class RobotContainer {
 
     /*Trigger to deal with Intake state */
     intake.isIntaking
+      .and(() -> DriverStation.isTeleop())
       .and(shooter.hasNoteBack)
       .onTrue(
         (intake.stop()
@@ -187,28 +197,34 @@ public class RobotContainer {
   }
 
   /*Auto Commands */
-  public final Command intakeWithRev = 
-    (arm.goToIntake().andThen(Commands.waitUntil(arm.atIntake)).andThen(intake.setIntakingState())
-    .andThen(intake.runIntakeMotor())).alongWith(shooter.intakeAndRevShooters()).until(shooter.hasNoteBack);
-
   public final Command intakeAuto = 
-    arm.goToIntake().andThen(Commands.waitUntil(arm.atIntake)).andThen(intake.setIntakingState())
-    .andThen(intake.runIntakeMotor()).alongWith(shooter.startIntaking()).until(shooter.hasNoteBack);
+    arm.goToIntake().andThen(intake.runIntakeMotor().alongWith(shooter.startIntaking())).until(shooter.hasNoteBack);
 
-  public final Command aimAndFeed = 
-    arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving())
-    .andThen(Commands.waitUntil(arm.atTarget)).andThen(shooter.feedNote());
+  public final Command stopIntake = 
+    intake.stop()
+        .alongWith(new InstantCommand(() -> shooter.stopIntaking()));
 
-  // public final Command intakeThenShoot = intakeWithRev
-  //   .andThen(shooter.setShooting().andThen(shooter.feedNote()));
+  public final Command aimAndRev = 
+    shooter.setRevving().alongWith(
+      arm.setAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving()))
+    .until(arm.atTarget.and(shooter.atSpeed));
+
+  public final Command stopShooter = 
+    shooter.stopFeed().andThen(shooter.coastShootersAndIdle());
+
+  public final Command shootSequence = 
+    shooter.setShooting().andThen(shooter.feedNote()).until(shooter.hasNoteBack.negate());
+
+  public final Command stopAndReset = 
+    arm.goToIntake().andThen(stopShooter);
 
   public void registerNamedCommands(){
-    // NamedCommands.registerCommand("intakeThenShoot", intakeThenShoot);
-    NamedCommands.registerCommand("intakeAndStop", intakeAuto.andThen(new InstantCommand(() -> shooter.stopIntaking()).alongWith(intake.stop())));
-    NamedCommands.registerCommand("shootAim", shooter.setRevving().until(shooter.atSpeed)
-      .andThen(aimAndFeed.until(shooter.hasNoteBack.negate())));
+    NamedCommands.registerCommand("intakeAndStop", intakeAuto.andThen(stopIntake));
     NamedCommands.registerCommand("preload", 
-      shooter.setRevving().alongWith(arm.goToDefaultShot()).until(arm.atTarget).andThen(shooter.feedNote().until(shooter.hasNoteBack.negate())
-      .andThen(arm.goToIntake().until(arm.atIntake).withTimeout(2))));
+      AimFactory.aimShooterAndShoot(shooter, arm, () -> ArmConstants.defaultShotAngle));
+    NamedCommands.registerCommand("aim", AimFactory.aimShooterAndShoot(shooter, arm,
+      () -> arm.getAngleFromDistance(() -> drivetrain.getSpeakerDistanceMoving())));
+    NamedCommands.registerCommand("stowAndStop", AimFactory.stowAndCoast(shooter, arm));
+    NamedCommands.registerCommand("Test Print", Commands.print("Test").repeatedly());
   } 
 }
