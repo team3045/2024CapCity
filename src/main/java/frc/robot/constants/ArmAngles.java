@@ -23,8 +23,8 @@ public class ArmAngles {
         map.put(2.0874, -40.0);
         map.put(2.3414, -44.0);
         map.put(2.5954, -46.0);
-        map.put(2.8494, -49.0);
-        map.put(3.1034, -51.0);
+        map.put(2.8494, -50.0);
+        map.put(3.1034, -52.0);
         map.put(3.3574, -54.0);
         map.put(4.094, -58.0);
         map.put(4.3414, -59.50);

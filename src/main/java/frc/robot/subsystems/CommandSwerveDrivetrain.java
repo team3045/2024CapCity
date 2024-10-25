@@ -63,7 +63,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean hasAppliedOperatorPerspective = false;
 
-    private final SwerveRequest.ApplyChassisSpeeds AutoRequest = new SwerveRequest.ApplyChassisSpeeds();
+    private final SwerveRequest.ApplyChassisSpeeds AutoRequest = 
+    new SwerveRequest.ApplyChassisSpeeds().withDriveRequestType(DriveRequestType.Velocity);
 
     private final SwerveRequest.SysIdSwerveTranslation TranslationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveRotation RotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
@@ -71,7 +72,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
       .withDeadband(TrueMaxSpeed * XYDeadband).withRotationalDeadband(TrueMaxAngularRate * RotationDeadband) // Add a 10% deadband
-      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
+      .withDriveRequestType(DriveRequestType.Velocity); // I want field-centric
                                                                // driving in open loop
 
     private final SwerveRequest.RobotCentric driveBack = new SwerveRequest.RobotCentric()
@@ -154,7 +155,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             this::seedFieldRelative,  // Consumer for seeding pose against auto
             this::getCurrentRobotChassisSpeeds,
             (speeds)->this.setControl(AutoRequest.withSpeeds(speeds)), // Consumer of ChassisSpeeds to drive the robot
-            new HolonomicPathFollowerConfig(new PIDConstants(8, 0, 0),
+            new HolonomicPathFollowerConfig(new PIDConstants(6, 0, 0),
                                             new PIDConstants(8, 0, 0),
                                             TunerConstants.kSpeedAt12VoltsMps,
                                             driveBaseRadius,

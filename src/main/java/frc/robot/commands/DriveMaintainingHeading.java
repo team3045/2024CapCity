@@ -36,9 +36,9 @@ public class DriveMaintainingHeading extends Command {
   private SwerveRequest.FieldCentric driveNoHeading = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * XYDeadband) // Add a 10% deadband in open loop
             .withRotationalDeadband(MaxAngularRate * RotationDeadband)
-            .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage);
+            .withDriveRequestType(SwerveModule.DriveRequestType.Velocity);
   private SwerveRequest.FieldCentricFacingAngle driveMaintainAngle = new SwerveRequest.FieldCentricFacingAngle()
-    .withDeadband(MaxSpeed * XYDeadband).withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    .withDeadband(MaxSpeed * XYDeadband).withDriveRequestType(DriveRequestType.Velocity);
 
   /** Creates a new DriveMaintainingHeading. */
   public DriveMaintainingHeading(CommandSwerveDrivetrain drivetrain, 

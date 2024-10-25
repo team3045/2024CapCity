@@ -8,7 +8,7 @@ import frc.robot.generated.TunerConstants;
 
 /** Add your docs here. */
 public class DriveConstants {
-    public static final double rangeTheshold = 6; //3 meters
+    public static final double rangeTheshold = 5; //3 meters
     public static final double TrueMaxAngularRate = 1.5 * Math.PI;
     public static final double TrueMaxSpeed = TunerConstants.kSpeedAt12VoltsMps;
 

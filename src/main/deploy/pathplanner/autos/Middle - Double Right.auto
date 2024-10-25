@@ -35,6 +35,25 @@
               }
             ]
           }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Middle Close - Right Close"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeAimShoot"
+                }
+              }
+            ]
+          }
         }
       ]
     }

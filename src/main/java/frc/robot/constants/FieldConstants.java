@@ -14,7 +14,7 @@ import java.util.List;
 
 public class FieldConstants {
 
-  public static final boolean isShopField = true;
+  public static final boolean isShopField = false;
 
   public static final double fieldLength = 16.451;
   public static final double fieldWidth = 8.211;
