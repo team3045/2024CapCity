@@ -83,6 +83,6 @@ public class VisionConstants {
     };
 
     public static final BreadPhotonCamera[] cameras = {
-      new BreadPhotonCamera(NetworkTableInstance.getDefault(), "leftFront", cameraPoses[0]),
+      //new BreadPhotonCamera(NetworkTableInstance.getDefault(), "leftFront", cameraPoses[0]),
       new BreadPhotonCamera(NetworkTableInstance.getDefault(), "rightFront", cameraPoses[1])};
 }

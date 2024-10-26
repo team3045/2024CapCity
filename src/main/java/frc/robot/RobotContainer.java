@@ -69,6 +69,18 @@ public class RobotContainer {
         shooter.stopFeedRunnable();
       }
     });
+
+  private final Command passCommand = shooter.setRevving()
+    .alongWith(arm.goToPass())
+    .alongWith(drivetrain.aimAtSpeakerMoving(
+        () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+        ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
+    .finallyDo((interrupted) -> {
+        if(!interrupted){
+            shooter.coastShootersAndIdleRunnable();
+            shooter.stopFeedRunnable();
+        }
+    });
   
   private final DriveMaintainingHeading driveCommand = new DriveMaintainingHeading(
     drivetrain, joystick::getLeftYReversed, joystick::getLeftXReversed, joystick::getRightXReversed, true);
@@ -77,8 +89,6 @@ public class RobotContainer {
     drivetrain.setDefaultCommand(driveCommand);
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
-    joystick.circle().whileTrue(drivetrain
-        .applyRequest(() -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
     // reset the field-centric heading on left bumper press
     drivetrain.registerTelemetry(logger::telemeterize);
@@ -143,6 +153,9 @@ public class RobotContainer {
         .andThen(shooter.runBackSlow().until(shooter.hasNoteFront))
         .andThen(shooter.runForwardSlow().until(shooter.hasNoteFront.negate()))
       );
+
+    joystick.share().toggleOnTrue(intake.reverseIntakeMotor());
+    joystick.options().toggleOnTrueNoInterrupt(passCommand);
   
     joystick.triangle().OnPressTwice(
       drivetrain.driveFacingAngleCommand(

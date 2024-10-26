@@ -75,6 +75,13 @@ public class IntakeSubsystem extends SubsystemBase {
     });
   }
 
+  public Command reverseIntakeMotor(){
+    return this.run(() -> {
+      intakeMotorLeft.set(-intakeSpeed);
+      intakeMotorRight.setExpiration(-intakeSpeed);
+    });
+  }
+
   public Command setIntakingState() {
     return this.runOnce(() -> state = IntakeState.INTAKING);
   }

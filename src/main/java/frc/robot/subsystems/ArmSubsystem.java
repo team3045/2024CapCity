@@ -322,6 +322,10 @@ public class ArmSubsystem extends SubsystemBase {
     return goToAngle(() -> defaultShotAngle);
   }
 
+  public Command goToPass(){
+    return goToAngle(() -> passAngle);
+  }
+
   public Command goToMin(){
     return goToAngle(()-> minAngle);
   }
