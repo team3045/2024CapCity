@@ -154,7 +154,7 @@ public class RobotContainer {
         .andThen(shooter.runForwardSlow().until(shooter.hasNoteFront.negate()))
       );
 
-    joystick.share().toggleOnTrue(intake.reverseIntakeMotor());
+    joystick.share().toggleOnTrue(intake.reverseIntakeMotor().finallyDo(() -> intake.stopRunnable()));
     joystick.options().toggleOnTrueNoInterrupt(passCommand);
   
     joystick.triangle().OnPressTwice(
