@@ -8,6 +8,8 @@ import java.util.Optional;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
+import dev.doglog.DogLog;
+import dev.doglog.DogLogOptions;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -18,6 +20,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commons.GremlinLogger;
 import frc.robot.constants.ArmAngles;
 
 public class Robot extends TimedRobot {
@@ -42,13 +45,13 @@ public class Robot extends TimedRobot {
      autoChooser = AutoBuilder.buildAutoChooser("Start Middle");
 
     SmartDashboard.putData("Auto Choose", autoChooser);
+    DogLog.setOptions(new DogLogOptions().withCaptureNt(true));
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     SmartDashboard.putData("Command Scheduler", CommandScheduler.getInstance());
-    checkAllianceColor();
   }
 
   @Override
@@ -124,6 +127,7 @@ public class Robot extends TimedRobot {
   }
 
   public static boolean isRedAlliance() {
+        GremlinLogger.logSD("ISRedAlliance", DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().equals(Optional.of(Alliance.Red)));
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().equals(Optional.of(Alliance.Red));
   }
 

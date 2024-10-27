@@ -86,7 +86,12 @@ public class RobotContainer {
     drivetrain, joystick::getLeftYReversed, joystick::getLeftXReversed, joystick::getRightXReversed, true);
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand(driveCommand);
+    drivetrain.setDefaultCommand(
+      drivetrain.getDriveCommand(
+        () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+        () -> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed, 
+        () -> -joystick.getRightX() * DriveConstants.appliedMaxAngularRate)
+    );
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
 
@@ -94,6 +99,7 @@ public class RobotContainer {
     drivetrain.registerTelemetry(logger::telemeterize);
 
     joystick.R2().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
+    joystick.square().onTrue(new InstantCommand(() -> drivetrain.seedFieldRelative()));
 
     /*Bindings to set State of Shooter*/
     //Should have shooters rev, Essentially sets everything up for the later trigger
@@ -111,7 +117,7 @@ public class RobotContainer {
     /*Triggers to deal with State of Shooter */
     (shooter.isRevving.or(shooter.isShooting))
       .and(() -> DriverStation.isTeleop())
-      .and(shooter.hasNoteBack)
+      .and(shooter.hasNoteBack.or(shooter.defaultShotTrigger))
       .and(shooter.atSpeed)
       .and(arm.atTarget)
       .and(drivetrain.withinRange.or(shooter.defaultShotTrigger)) //TODO: add a check that a main "shooter" camera sees the target
@@ -239,6 +245,6 @@ public class RobotContainer {
     NamedCommands.registerCommand("Test Print", Commands.print("Test").repeatedly());
     NamedCommands.registerCommand("IntakeAimShoot", 
       intakeAuto().andThen(stopIntake()).andThen(aimAndRev())
-      .andThen(shootSequence().andThen(stopAndReset())).withTimeout(5));
+      .andThen(shootSequence().andThen(stopAndReset())).withTimeout(3));
   } 
 }
