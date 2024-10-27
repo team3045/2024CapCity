@@ -246,5 +246,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("IntakeAimShoot", 
       intakeAuto().andThen(stopIntake()).andThen(aimAndRev())
       .andThen(shootSequence().andThen(stopAndReset())).withTimeout(3));
+    NamedCommands.registerCommand("aimAndShoot", aimAndRev()
+      .andThen(shootSequence().andThen(stopAndReset())));
   } 
 }
