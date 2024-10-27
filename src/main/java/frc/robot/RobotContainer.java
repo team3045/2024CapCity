@@ -72,6 +72,7 @@ public class RobotContainer {
 
   private final Command passCommand = shooter.setRevving()
     .alongWith(arm.goToPass())
+    .alongWith(new InstantCommand(() -> shooter.setDefaultShot(true)))
     .alongWith(drivetrain.aimAtSpeakerMoving(
         () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
         ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
