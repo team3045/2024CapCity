@@ -171,7 +171,8 @@ public class RobotContainer {
         () -> FieldConstants.ampAngle).alongWith(
       shooter.setAmp().andThen(arm.goToAmp())), 
 
-      shooter.ampShot().until(shooter.hasNoteBack.negate().and(shooter.hasNoteFront.negate()))
+      (shooter.ampShot().until(shooter.hasNoteBack.negate().and(shooter.hasNoteFront.negate())))
+        .alongWith(Commands.waitSeconds(0.5))
         .andThen(shooter.stopFeed())
         .andThen(drivetrain.driveBackFromAmp())
         .andThen(shooter.coastShootersAndIdle())
@@ -246,7 +247,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Test Print", Commands.print("Test").repeatedly());
     NamedCommands.registerCommand("IntakeAimShoot", 
       intakeAuto().andThen(stopIntake()).andThen(aimAndRev())
-      .andThen(shootSequence().andThen(stopAndReset())).withTimeout(3));
+      .andThen(shootSequence().andThen(stopAndReset())).withTimeout(5));
     NamedCommands.registerCommand("aimAndShoot", aimAndRev()
       .andThen(shootSequence().andThen(stopAndReset())));
   } 
