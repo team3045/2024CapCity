@@ -96,7 +96,6 @@ public class RobotContainer {
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
 
-    // reset the field-centric heading on left bumper press
     drivetrain.registerTelemetry(logger::telemeterize);
 
     //joystick.R2().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
@@ -104,7 +103,7 @@ public class RobotContainer {
 
     /*Bindings to set State of Shooter*/
     //Should have shooters rev, Essentially sets everything up for the later trigger
-    joystick.L1().toggleOnTrueNoInterrupt(autoAimShotCommand);
+    // joystick.L1().toggleOnTrueNoInterrupt(autoAimShotCommand);
 
     joystick.L2().toggleOnTrueNoInterrupt( //DEFAULT SHOT COMMAND TODO: ADD TURN TO ANGLE
       defaultShotCommand.finallyDo((interrupted) -> {
@@ -161,22 +160,22 @@ public class RobotContainer {
         .andThen(shooter.runForwardSlow().until(shooter.hasNoteFront.negate()))
       );
 
-    joystick.share().toggleOnTrue(intake.reverseIntakeMotor().finallyDo(() -> intake.stopRunnable()));
-    joystick.options().toggleOnTrueNoInterrupt(passCommand);
+    // joystick.share().toggleOnTrue(intake.reverseIntakeMotor().finallyDo(() -> intake.stopRunnable()));
+    // joystick.options().toggleOnTrueNoInterrupt(passCommand);
   
-    joystick.triangle().OnPressTwice(
-      drivetrain.driveFacingAngleCommand(
-        () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
-        ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed, 
-        () -> FieldConstants.ampAngle).alongWith(
-      shooter.setAmp().andThen(arm.goToAmp())), 
+    // joystick.triangle().OnPressTwice(
+    //   drivetrain.driveFacingAngleCommand(
+    //     () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+    //     ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed, 
+    //     () -> FieldConstants.ampAngle).alongWith(
+    //   shooter.setAmp().andThen(arm.goToAmp())), 
 
-      (shooter.ampShot().until(shooter.hasNoteBack.negate().and(shooter.hasNoteFront.negate())))
-        .alongWith(Commands.waitSeconds(0.5))
-        .andThen(shooter.stopFeed())
-        .andThen(drivetrain.driveBackFromAmp())
-        .andThen(shooter.coastShootersAndIdle())
-    );
+    //   (shooter.ampShot().until(shooter.hasNoteBack.negate().and(shooter.hasNoteFront.negate())))
+    //     .alongWith(Commands.waitSeconds(0.5))
+    //     .andThen(shooter.stopFeed())
+    //     .andThen(drivetrain.driveBackFromAmp())
+    //     .andThen(shooter.coastShootersAndIdle())
+    // );
 
     joystick.povDown().onTrue(new InstantCommand(() -> arm.findZero()));    
 
