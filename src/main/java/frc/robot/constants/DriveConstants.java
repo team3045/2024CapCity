@@ -19,6 +19,6 @@ public class DriveConstants {
     public static final double XYDeadband = 0.05;
     public static final double RotationDeadband = 0.1;
 
-    public static double appliedMaxSpeed = 2;
+    public static double appliedMaxSpeed = 1;
     public static double appliedMaxAngularRate = Math.PI / 2;
 }
