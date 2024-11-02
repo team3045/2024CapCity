@@ -99,7 +99,7 @@ public class RobotContainer {
     // reset the field-centric heading on left bumper press
     drivetrain.registerTelemetry(logger::telemeterize);
 
-    joystick.R2().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
+    //joystick.R2().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
     joystick.square().onTrue(new InstantCommand(() -> drivetrain.seedFieldRelative()));
 
     /*Bindings to set State of Shooter*/
