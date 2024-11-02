@@ -69,21 +69,38 @@ public class RobotContainer {
         shooter.stopFeedRunnable();
       }
     });
+
+  private final Command passCommand = shooter.setRevving()
+    .alongWith(arm.goToPass())
+    .alongWith(new InstantCommand(() -> shooter.setDefaultShot(true)))
+    .alongWith(drivetrain.aimAtSpeakerMoving(
+        () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+        ()-> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed))
+    .finallyDo((interrupted) -> {
+        if(!interrupted){
+            shooter.coastShootersAndIdleRunnable();
+            shooter.stopFeedRunnable();
+        }
+    });
   
   private final DriveMaintainingHeading driveCommand = new DriveMaintainingHeading(
     drivetrain, joystick::getLeftYReversed, joystick::getLeftXReversed, joystick::getRightXReversed, true);
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand(driveCommand);
+    drivetrain.setDefaultCommand(
+      drivetrain.getDriveCommand(
+        () -> -joystick.getLeftY() * DriveConstants.appliedMaxSpeed, 
+        () -> -joystick.getLeftX() * DriveConstants.appliedMaxSpeed, 
+        () -> -joystick.getRightX() * DriveConstants.appliedMaxAngularRate)
+    );
 
     joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
-    joystick.circle().whileTrue(drivetrain
-        .applyRequest(() -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
     // reset the field-centric heading on left bumper press
     drivetrain.registerTelemetry(logger::telemeterize);
 
     joystick.R2().OnPressTwice(drivetrain.toggleSlowMode(), drivetrain.toggleFastMode());
+    joystick.square().onTrue(new InstantCommand(() -> drivetrain.seedFieldRelative()));
 
     /*Bindings to set State of Shooter*/
     //Should have shooters rev, Essentially sets everything up for the later trigger
@@ -101,7 +118,7 @@ public class RobotContainer {
     /*Triggers to deal with State of Shooter */
     (shooter.isRevving.or(shooter.isShooting))
       .and(() -> DriverStation.isTeleop())
-      .and(shooter.hasNoteBack)
+      .and(shooter.hasNoteBack.or(shooter.defaultShotTrigger))
       .and(shooter.atSpeed)
       .and(arm.atTarget)
       .and(drivetrain.withinRange.or(shooter.defaultShotTrigger)) //TODO: add a check that a main "shooter" camera sees the target
@@ -143,6 +160,9 @@ public class RobotContainer {
         .andThen(shooter.runBackSlow().until(shooter.hasNoteFront))
         .andThen(shooter.runForwardSlow().until(shooter.hasNoteFront.negate()))
       );
+
+    joystick.share().toggleOnTrue(intake.reverseIntakeMotor().finallyDo(() -> intake.stopRunnable()));
+    joystick.options().toggleOnTrueNoInterrupt(passCommand);
   
     joystick.triangle().OnPressTwice(
       drivetrain.driveFacingAngleCommand(
@@ -151,7 +171,8 @@ public class RobotContainer {
         () -> FieldConstants.ampAngle).alongWith(
       shooter.setAmp().andThen(arm.goToAmp())), 
 
-      shooter.ampShot().until(shooter.hasNoteBack.negate().and(shooter.hasNoteFront.negate()))
+      (shooter.ampShot().until(shooter.hasNoteBack.negate().and(shooter.hasNoteFront.negate())))
+        .alongWith(Commands.waitSeconds(0.5))
         .andThen(shooter.stopFeed())
         .andThen(drivetrain.driveBackFromAmp())
         .andThen(shooter.coastShootersAndIdle())
@@ -227,5 +248,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("IntakeAimShoot", 
       intakeAuto().andThen(stopIntake()).andThen(aimAndRev())
       .andThen(shootSequence().andThen(stopAndReset())).withTimeout(5));
+    NamedCommands.registerCommand("aimAndShoot", aimAndRev()
+      .andThen(shootSequence().andThen(stopAndReset())));
   } 
 }

@@ -19,6 +19,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
+import frc.robot.commons.GremlinLogger;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
@@ -64,6 +65,9 @@ public class DriveMaintainingHeading extends Command {
   public void execute() {
     double vXInput = Math.copySign(vX.getAsDouble() * vX.getAsDouble(), vX.getAsDouble());
     double vYInput = Math.copySign(vY.getAsDouble() * vY.getAsDouble(), vY.getAsDouble());
+    GremlinLogger.logSD("Drive Inputs/vX", vXInput);
+    GremlinLogger.logSD("Drive Inputs/vY", vYInput);
+    GremlinLogger.logSD("Drive Inputs/vOmega", vOmega.getAsDouble());
 
     double xSpeed = vXInput * MaxSpeed;
     double ySpeed = vYInput * MaxSpeed;
