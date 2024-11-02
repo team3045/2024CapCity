@@ -5,6 +5,7 @@
 package frc.robot;
 
 
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -24,6 +25,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.OrchestraSubsytem;
 import frc.robot.subsystems.ShooterSubsytem;
 import frc.robot.vision.GremlinApriltagVision;
 
@@ -34,6 +36,9 @@ public class RobotContainer {
   public final ArmSubsystem arm = new ArmSubsystem();
   public final ShooterSubsytem shooter = new ShooterSubsytem();
   public final IntakeSubsystem intake = new IntakeSubsystem();
+  public final OrchestraSubsytem orchestra = new OrchestraSubsytem(
+    new TalonFX(1, "3045 Canivore"),new TalonFX(2, "3045 Canivre"),new TalonFX(3, "3045 Canivore"),new TalonFX(4,"3045 Canivore"),
+    new TalonFX(5,"3045 Canivore"),new TalonFX(6, "3045 Canivore"),new TalonFX(7, "3045 Canivore"),new TalonFX(8, "3045 Canivore"));
 
 
   /*Vision System */
