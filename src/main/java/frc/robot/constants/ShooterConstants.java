@@ -25,7 +25,7 @@ public class ShooterConstants {
     public static final double backHasNoteThreshold = 105; //mm
     public static final double hasNoteDebounceTime = 0.5; //s
 
-    public static final double shootingVelocity = 100; //rot per seconds
+    public static final double shootingVelocity = 50; //rot per seconds
     public static final double feedingVelocity = 10;
 
     // LOGPATH
