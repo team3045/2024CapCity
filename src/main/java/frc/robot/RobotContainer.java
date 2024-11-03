@@ -99,7 +99,8 @@ public class RobotContainer {
         () -> -joystick.getRightX() * DriveConstants.appliedMaxAngularRate)
     );
 
-    joystick.cross().whileTrue(drivetrain.applyRequest(() -> brake));
+    joystick.cross().whileTrue(orchestra.playMusic());
+    joystick.cross().onFalse(orchestra.stopMusic());
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
